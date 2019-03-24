@@ -6,11 +6,32 @@
 
 #include <cstdlib>
 #include <vector>
+#include <map>
+#include <string>
 
 namespace blahpiler {
 
+using namespace std::string_literals;
+
 constexpr int charToInt(char const sym) {
 	return static_cast<int>(sym) - '0';
+}
+
+KeywordTable getKeywordTable() noexcept {
+	KeywordTable keywordTable;
+	keywordTable["if"] = Word{0, 0, "if", Tag::IF};
+
+	return keywordTable;
+}
+
+std::optional<Word> getKeyword(std::string const& lexeme,
+	KeywordTable const& keywordTable) noexcept {
+
+	if (auto keywordIt = keywordTable.find(lexeme); keywordIt != keywordTable.end()) {
+		return keywordIt->second;
+	} else {
+		return std::nullopt;
+	}
 }
 
 // TODO: write a test for the function
@@ -53,7 +74,26 @@ std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer)
 	return std::pair(parsedNumber, bufferInd);
 }
 
-void parseProgram(std::string const& inputData) noexcept {
+std::pair<std::optional<Word>, size_t> parseWord(std::string_view inputBuffer) noexcept {
+	size_t bufferInd = 0;
+	std::string lexeme;
+
+	do {
+		lexeme += inputBuffer[bufferInd];
+	} while (!std::isspace(inputBuffer[++bufferInd]) && bufferInd < inputBuffer.size());
+
+	// check if the parsed word is a keyword
+	auto const keywordTable = getKeywordTable();
+	auto parsedKeyword = getKeyword(lexeme, keywordTable);
+
+	if (parsedKeyword != std::nullopt) {
+		return std::pair(parsedKeyword, bufferInd);
+	}
+
+	return std::pair(Word{0, 0, lexeme, Tag::ID}, bufferInd);
+}
+
+std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 	size_t lineNumber = 0;
 	size_t posInLine = 0;
 	std::optional<char> peek = std::nullopt;
@@ -66,7 +106,6 @@ void parseProgram(std::string const& inputData) noexcept {
 			if (inputBuffer.size() == peekIndex + 1) {
 				peek = std::nullopt;
 			} else {
-				posInLine++;
 				peek = inputBuffer[++peekIndex];
 			}
 		};
@@ -75,6 +114,7 @@ void parseProgram(std::string const& inputData) noexcept {
 
 		do {
 			if (peek == ' ' || peek == '\t') {
+				getch();
 				continue;
 			} else if (peek == '\n') {
 				lineNumber++;
@@ -87,42 +127,52 @@ void parseProgram(std::string const& inputData) noexcept {
 				getch();
 
 				if (peek == '=') {
-					parsedWords.emplace_back(lineNumber, posInLine, "<=", Tag::LE);
+					parsedWords.push_back({lineNumber, posInLine, "<="s, Tag::LE});
 				} else {
-					parsedWords.emplace_back(lineNumber, posInLine, "<", Tag::LT);
+					parsedWords.push_back({lineNumber, posInLine, "<", Tag::LT});
 				}
+
+				posInLine++;
 			} else if (peek == '>') {
 				getch();
 
 				if (peek == '=') {
-					parsedWords.emplace_back(lineNumber, posInLine, ">=", Tag::GE);
+					parsedWords.push_back({lineNumber, posInLine, ">=", Tag::GE});
 				} else {
-					parsedWords.emplace_back(lineNumber, posInLine, ">", Tag::GT);
+					parsedWords.push_back({lineNumber, posInLine, ">", Tag::GT});
 				}
+
+				posInLine++;
 			} else if (peek == '=') {
 				getch();
 
 				if (peek == '=') {
-					parsedWords.emplace_back(lineNumber, posInLine, "==", Tag::EQ);
+					parsedWords.push_back({lineNumber, posInLine, "==", Tag::EQ});
 				} else {
-					parsedWords.emplace_back(lineNumber, posInLine, "=", Tag::ASSIGN);
+					parsedWords.push_back({lineNumber, posInLine, "=", Tag::ASSIGN});
 				}
+
+				posInLine++;
 			} else if (peek == '&') {
 				getch();
 
 				if (peek == '&') {
-					parsedWords.emplace_back(lineNumber, posInLine, "==", Tag::EQ);
+					parsedWords.push_back({lineNumber, posInLine, "&&", Tag::AND});
 				} else {
-					parsedWords.emplace_back(lineNumber, posInLine, "=", Tag::ASSIGN);
+					parsedWords.push_back({lineNumber, posInLine, "&", Tag::TOKEN});
 				}
-			} else if (peek == '=') {
+
+				posInLine++;
+			} else if (peek == '|') {
 				getch();
 
-				if (peek == '=') {
-					parsedWords.emplace_back(lineNumber, posInLine, "==", Tag::EQ);
+				if (peek == '|') {
+					parsedWords.push_back({lineNumber, posInLine, "||", Tag::OR});
 				} else {
-					parsedWords.emplace_back(lineNumber, posInLine, "=", Tag::ASSIGN);
+					parsedWords.push_back({lineNumber, posInLine, "|", Tag::TOKEN});
 				}
+
+				posInLine++;
 			}
 
 			if (std::isdigit(static_cast<unsigned char>(*peek))) {
@@ -134,6 +184,8 @@ void parseProgram(std::string const& inputData) noexcept {
 					parsedNumber->posInLine = posInLine;
 					fmt::printf("a parsed number: %s, line %d, pos %d\n", parsedNumber->lexeme,
 						lineNumber, posInLine);
+
+					parsedWords.push_back(*parsedNumber);
 				} else {
 					fmt::printf("Couldn't parse a number from line %d\n", lineNumber);
 				}
@@ -143,34 +195,30 @@ void parseProgram(std::string const& inputData) noexcept {
 				posInLine += bytesNum;
 			}
 
+			if (std::isalpha(*peek)) {
+				auto [parsedWord, bytesNum] = parseWord(&inputBuffer[peekIndex]);
+
+				if (parsedWord == std::nullopt) {
+					fmt::printf("Something went wrong when parsing a word at: %d, %d", peekIndex, posInLine);
+				}
+
+				parsedWord->lineNumber = lineNumber;
+				parsedWord->posInLine = posInLine;
+				peekIndex += bytesNum;
+				posInLine += bytesNum;
+
+				parsedWords.push_back(*parsedWord);
+			}
+
 			getch();
+			posInLine++;
 			// end of the input stream, finish parsing
-		} while (peek != std::nullopt);
+		} while (peek != std::nullopt && peek != '\0');
 	};
 
 	parse();
-}
 
-
-Lexer::Lexer(std::string newInputBuffer)
-	: inputBuffer(std::move(newInputBuffer)) {}
-
-void Lexer::parse() noexcept {
-
-}
-
-bool Lexer::getch(char s) noexcept
-{
-	return false;
-}
-
-void Lexer::getch() noexcept
-{
-	if (inputBuffer.size() == peekIndex + 1) {
-		peek = std::nullopt;
-	} else {
-		peek = inputBuffer[++peekIndex];
-	}
+	return parsedWords;
 }
 
 }
