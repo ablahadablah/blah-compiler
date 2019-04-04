@@ -10,11 +10,13 @@
 #include <cstdint>
 #include <string>
 
+#include "Entity.hpp"
+
 namespace blahpiler {
 
-class Expression {
+class Expression : public Entity {
 public:
-	virtual ~Expression() = default;
+	~Expression() override = default;
 };
 
 //class LiteralExpression : Expression {
