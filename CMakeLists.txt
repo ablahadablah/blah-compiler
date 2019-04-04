@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(lib/libfmt)
 add_subdirectory(tests)
 
-add_executable(blahCompiler src/main.cpp src/lexer.cpp src/lexer.hpp)
+add_executable(blahCompiler src/main.cpp src/lexer.cpp src/lexer.hpp src/parser/parser.cpp src/parser/parser.hpp src/parser/Expression.cpp src/parser/Expression.hpp)
 
 target_include_directories(blahCompiler PUBLIC src)
 
