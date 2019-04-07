@@ -33,6 +33,15 @@ public:
 	~IntLiteralExpression() override = default;
 };
 
+class DoubleLiteralExpression : public Expression {
+	double value;
+
+public:
+	explicit DoubleLiteralExpression(double newValue)
+		: value(newValue) {}
+	~DoubleLiteralExpression() override = default;
+};
+
 class StringLiteralExpression : public Expression {
 	std::string value;
 
@@ -40,6 +49,11 @@ public:
 	explicit StringLiteralExpression(std::string newValue)
 		: value(std::move(newValue)) {}
 	~StringLiteralExpression() override = default;
+};
+
+class BinaryExpression : public Expression {
+public:
+	~BinaryExpression() = default;
 };
 
 }
