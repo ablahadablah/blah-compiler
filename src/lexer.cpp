@@ -184,6 +184,14 @@ std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 				posInLine++;
 			} else if (peek == ':') {
 				parsedWords.push_back({lineNumber, posInLine, ":", Tag::COLON});
+			} else if (peek == '+') {
+				parsedWords.push_back({lineNumber, posInLine, "+", Tag::PLUS});
+			} else if (peek == '-') {
+				parsedWords.push_back({lineNumber, posInLine, "-", Tag::MINUS});
+			} else if (peek == '*') {
+				parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
+			} else if (peek == '/') {
+				parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
 			}
 
 			if (std::isdigit(static_cast<unsigned char>(*peek))) {
