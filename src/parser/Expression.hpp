@@ -9,7 +9,9 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 
+#include <lexer.hpp>
 #include "Entity.hpp"
 
 namespace blahpiler {
@@ -53,6 +55,10 @@ public:
 
 class BinaryExpression : public Expression {
 public:
+	std::unique_ptr<Expression> lhs;
+	std::unique_ptr<Expression> rhs;
+	Tag operatorTag;
+
 	~BinaryExpression() = default;
 };
 
