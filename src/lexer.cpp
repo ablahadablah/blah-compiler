@@ -20,6 +20,15 @@ constexpr int charToInt(char const sym) {
 KeywordTable getKeywordTable() noexcept {
 	KeywordTable keywordTable;
 	keywordTable["if"] = Word{0, 0, "if", Tag::IF};
+	keywordTable["else"] = Word{0, 0, "else", Tag::ELSE};
+	keywordTable["while"] = Word{0, 0, "while", Tag::WHILE};
+	keywordTable["true"] = Word{0, 0, "true", Tag::TRUE};
+	keywordTable["false"] = Word{0, 0, "false", Tag::FALSE};
+	keywordTable["val"] = Word{0, 0, "val", Tag::VAL};
+	keywordTable["var"] = Word{0, 0, "var", Tag::VAR};
+	keywordTable["int"] = Word{0, 0, "int", Tag::TYPE};
+	keywordTable["double"] = Word{0, 0, "double", Tag::TYPE};
+	keywordTable["char"] = Word{0, 0, "char", Tag::TYPE};
 
 	return keywordTable;
 }
@@ -173,6 +182,16 @@ std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 				}
 
 				posInLine++;
+			} else if (peek == ':') {
+				parsedWords.push_back({lineNumber, posInLine, ":", Tag::COLON});
+			} else if (peek == '+') {
+				parsedWords.push_back({lineNumber, posInLine, "+", Tag::PLUS});
+			} else if (peek == '-') {
+				parsedWords.push_back({lineNumber, posInLine, "-", Tag::MINUS});
+			} else if (peek == '*') {
+				parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
+			} else if (peek == '/') {
+				parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
 			}
 
 			if (std::isdigit(static_cast<unsigned char>(*peek))) {

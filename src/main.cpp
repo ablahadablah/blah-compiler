@@ -1,17 +1,23 @@
 #include <iostream>
 
 #include "lexer.hpp"
+#include "parser/parser.hpp"
 
 int main()
 {
 	std::cout << "Hello, World!" << std::endl;
-	std::string sourceCode = "& if && < > = while 759 == <= >= else || 234 &&";
+//	std::string sourceCode = "& if && < > = while 759 == <= >= else int char val var";
+	std::string sourceCode = "val someVal : int = 395 + 59\n";
+//						  "val anotherVal : int = someVal + 105";
 
 	auto parsedWords = blahpiler::parseProgram(sourceCode);
 
 	for (auto const& word : parsedWords) {
-		fmt::printf("parsed word %s from %d, %d\n", word.lexeme, word.lineNumber, word.posInLine);
+		fmt::printf("parsed word %s from %d, %d, type %d\n", word.lexeme, word.lineNumber, word.posInLine,
+			static_cast<int>(word.tag));
 	}
+
+	parse(parsedWords);
 
 	return 0;
 }
