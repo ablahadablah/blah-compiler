@@ -17,6 +17,8 @@
 
 #include <fmt/printf.h>
 
+#include "Identifier.hpp"
+
 namespace blahpiler {
 
 enum class Tag {
@@ -36,6 +38,7 @@ struct Word {
 	size_t posInLine;
 	std::string lexeme;
 	Tag tag;
+	std::optional<size_t> identifierIndex;
 };
 
 using KeywordTable = std::map<std::string, Word>;
@@ -48,7 +51,8 @@ std::optional<Word> getKeyword(std::string const& lexeme,
 //std::optional<Word> parseNumber(char const* inputBuffer) noexcept;
 std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer) noexcept;
 
-std::vector<Word> parseProgram(std::string const& inputData) noexcept;
+std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProgram(
+	std::string const& inputData) noexcept;
 
 }
 

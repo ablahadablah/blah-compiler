@@ -12,12 +12,16 @@ int main()
 
 	auto parsedWords = blahpiler::parseProgram(sourceCode);
 
-	for (auto const& word : parsedWords) {
+	for (auto const& word : parsedWords.first) {
 		fmt::printf("parsed word %s from %d, %d, type %d\n", word.lexeme, word.lineNumber, word.posInLine,
 			static_cast<int>(word.tag));
 	}
 
-	parse(parsedWords);
+	for (auto const& id : parsedWords.second) {
+		fmt::printf("identifier: %s\n", id->name);
+	}
+
+//	parse(parsedWords);
 
 	return 0;
 }
