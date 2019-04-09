@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <algorithm>
 
 namespace blahpiler {
 
@@ -216,7 +217,14 @@ std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 				return expr;
 			}
 		case Tag::ID:
-			return parseIdExpression(parserContext);
+			expr = std::move(parseIdExpression(parserContext));
+
+			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+				parserContext.wordIt++;
+				return parseBinaryExpression(parserContext, std::move(expr));
+			} else {
+				return expr;
+			}
 		default:
 			fmt::printf("Couldn't parse an expression at line %d: wrong tag\n", parserContext.wordIt->lineNumber);
 			return nullptr;
@@ -224,6 +232,19 @@ std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 }
 
 std::unique_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing an id expression\n");
+
+	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
+		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			auto idExpr = std::make_unique<IdExpression>();
+			idExpr->idListIndex = i;
+
+			return idExpr;
+		}
+	}
+
+	fmt::printf("identifier is not defined: %s\n", parserContext.wordIt->lexeme);
+
 	return nullptr;
 }
 
