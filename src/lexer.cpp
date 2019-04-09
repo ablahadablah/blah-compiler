@@ -140,6 +140,7 @@ std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProg
 				lineNumber++;
 				posInLine = 0;
 				fmt::printf("found a new line %d! \n", lineNumber);
+				getch();
 				continue;
 			}
 
