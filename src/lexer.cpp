@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <set>
 
 #include "Identifier.hpp"
 
@@ -120,6 +121,7 @@ std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProg
 	std::string inputBuffer = inputData;
 	std::vector<Word> parsedWords;
 	std::vector<std::unique_ptr<Identifier>> identifiersList;
+	std::set<std::string> identifierNames;
 
 	auto parse = [&] () {
 		auto getch = [&] () {
@@ -238,12 +240,16 @@ std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProg
 				peekIndex += bytesNum;
 				posInLine += bytesNum;
 
-				// handle identifiers table
 				if (parsedWord->tag == Tag::ID) {
 					auto identifier = handleIdentifier(*parsedWord);
 
 					if (identifier != nullptr) {
-						identifiersList.push_back(std::move(identifier));
+						auto idNameIt = identifierNames.find(identifier->name);
+
+						if (idNameIt == identifierNames.end()) {
+							identifierNames.insert(identifier->name);
+							identifiersList.push_back(std::move(identifier));
+						}
 					}
 				}
 
