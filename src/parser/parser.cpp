@@ -1,7 +1,3 @@
-//
-// Created by user on 4/2/19.
-//
-
 #include "parser.hpp"
 
 #include <memory>
@@ -9,25 +5,29 @@
 
 namespace blahpiler {
 
-void parse(std::vector<Word> const& words) noexcept {
+void parse(std::vector<Word> const& words,
+	std::vector<std::unique_ptr<Identifier>>& identifiers) noexcept {
 	fmt::printf("parsing the program\n");
 
-
 	std::vector<std::unique_ptr<Entity>> entities;
+	ParserContext parserContext;
+	parserContext.wordIt = words.begin();
+	parserContext.endIt = words.end();
+	parserContext.identifiersList = std::move(identifiers);
 
-	for (auto peek = words.begin(); peek != words.end(); peek += 1) {
-		entities.push_back(parseEntity(peek));
+	for (; parserContext.wordIt != parserContext.endIt; parserContext.wordIt += 1) {
+		entities.push_back(parseEntity(parserContext));
 	}
 
 	fmt::printf("Entities num: %d\n", entities.size());
 }
 
-std::unique_ptr<BinaryExpression> parseBinaryExpression(WordIt& wordIt,
-	std::unique_ptr<Expression> lhs) noexcept {
+std::unique_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
+                                                        std::unique_ptr<Expression> lhs) noexcept {
 	fmt::printf("Parsing a binary expression\n");
 	auto expr = std::make_unique<BinaryExpression>();
 
-	switch (wordIt->tag) {
+	switch (parserContext.wordIt->tag) {
 		case Tag::OR:
 		case Tag::AND:
 		case Tag::ASSIGN:
@@ -41,8 +41,9 @@ std::unique_ptr<BinaryExpression> parseBinaryExpression(WordIt& wordIt,
 		case Tag::MUL:
 		case Tag::DIV:
 			expr->lhs = std::move(lhs);
-			expr->operatorTag = wordIt->tag;
-			expr->rhs = std::move(parseExpression(++wordIt));
+			expr->operatorTag = parserContext.wordIt->tag;
+			parserContext.wordIt++;
+			expr->rhs = std::move(parseExpression(parserContext));
 
 			return expr;
 		default:
@@ -50,24 +51,24 @@ std::unique_ptr<BinaryExpression> parseBinaryExpression(WordIt& wordIt,
 	}
 }
 
-std::unique_ptr<Expression> parseLiteralExpression(WordIt& wordIt) noexcept {
+std::unique_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing a literal expression\n");
 
-	switch (wordIt->tag) {
+	switch (parserContext.wordIt->tag) {
 		case Tag::INT:
-			return std::unique_ptr<Expression>(new IntLiteralExpression(std::stoi(wordIt->lexeme)));
+			return std::unique_ptr<Expression>(new IntLiteralExpression(std::stoi(parserContext.wordIt->lexeme)));
 		case Tag::DOUBLE:
-			return std::make_unique<DoubleLiteralExpression>(std::stod(wordIt->lexeme));
+			return std::make_unique<DoubleLiteralExpression>(std::stod(parserContext.wordIt->lexeme));
 		default:
 			fmt::printf("Some wrong tag, cannot parse a literal expression\n");
 			return nullptr;
 	}
 }
 
-std::unique_ptr<Entity> parseEntity(WordIt& wordIt) noexcept {
+std::unique_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 	fmt::printf("Parsing an entity\n");
 
-	switch (wordIt->tag) {
+	switch (parserContext.wordIt->tag) {
 		case Tag::OR:
 		case Tag::AND:
 		case Tag::ASSIGN:
@@ -80,76 +81,86 @@ std::unique_ptr<Entity> parseEntity(WordIt& wordIt) noexcept {
 //			return parseBinaryExpression(wordIt);
 			return nullptr;
 		case Tag::INT:
-			return parseLiteralExpression(wordIt);
+			return parseLiteralExpression(parserContext);
 		case Tag::FUN:
-			return parseFunctionDefinitionStatement(wordIt);
+			return parseFunctionDefinitionStatement(parserContext);
 		case Tag::VAL:
-			return parseValDefinitionStatement(wordIt);
+			return parseValDefinitionStatement(parserContext);
 		default:
-			fmt::printf("blah blah blah default: %s\n", wordIt->lexeme);
+			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
 	}
 }
 
-std::unique_ptr<Entity> parseFunctionDefinitionStatement(WordIt& wordIt) noexcept {
-	if ((++wordIt)->tag != Tag::ID) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+std::unique_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept {
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::ID) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::LPARENTH) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::LPARENTH) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::RPARENTH) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::RPARENTH) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::COLON) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::COLON) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::LBRACE) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::LBRACE) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::RBRACE) {
-		fmt::printf("Couldn't parse function definition at line %d\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::RBRACE) {
+		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
 
 	return nullptr;
 }
 
-std::unique_ptr<Entity> parseValDefinitionStatement(WordIt& wordIt) noexcept {
+std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing a val definition\n");
 	auto valDefinitionStmt = std::make_unique<ValDefinitionStatement>();
 
-	++wordIt;
-	if ((wordIt)->tag != Tag::ID) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an ID\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::ID) {
+		fmt::printf("Couldn't parse val definition at line %d: expected an ID\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	valDefinitionStmt->name = wordIt->lexeme;
+	valDefinitionStmt->name = parserContext.wordIt->lexeme;
 
-	if ((++wordIt)->tag != Tag::COLON) {
-		fmt::printf("Couldn't parse val definition at line %d: expected a colon\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::COLON) {
+		fmt::printf("Couldn't parse val definition at line %d: expected a colon\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	if ((++wordIt)->tag != Tag::TYPE) {
-		fmt::printf("Couldn't parse val at line %d: expected a type\n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::TYPE) {
+		fmt::printf("Couldn't parse val at line %d: expected a type\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	valDefinitionStmt->type = wordIt->lexeme;
+	valDefinitionStmt->type = parserContext.wordIt->lexeme;
 
-	if ((++wordIt)->tag != Tag::ASSIGN) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", wordIt->lineNumber);
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::ASSIGN) {
+		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	auto initExpression = parseExpression(++wordIt);
+	parserContext.wordIt++;
+	auto initExpression = parseExpression(parserContext);
 
 	if (initExpression == nullptr) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an init expression \n", wordIt->lineNumber);
+		fmt::printf("Couldn't parse val definition at line %d: expected an init expression \n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
 
@@ -158,7 +169,7 @@ std::unique_ptr<Entity> parseValDefinitionStatement(WordIt& wordIt) noexcept {
 	return valDefinitionStmt;
 }
 
-std::unique_ptr<Expression> parseExpression(WordIt& wordIt) noexcept {
+std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing an expression\n");
 
 	auto const checkForBinaryExpr = [] (WordIt& wordIt) -> bool {
@@ -183,7 +194,7 @@ std::unique_ptr<Expression> parseExpression(WordIt& wordIt) noexcept {
 
 	std::unique_ptr<Expression> expr = nullptr;
 
-	switch (wordIt->tag) {
+	switch (parserContext.wordIt->tag) {
 		case Tag::OR:
 		case Tag::AND:
 		case Tag::ASSIGN:
@@ -196,22 +207,23 @@ std::unique_ptr<Expression> parseExpression(WordIt& wordIt) noexcept {
 //			return parseBinaryExpression(wordIt);
 			return nullptr;
 		case Tag::INT:
-			expr = std::move(parseLiteralExpression(wordIt));
+			expr = std::move(parseLiteralExpression(parserContext));
 
-			if (auto tmpIt = wordIt + 1; checkForBinaryExpr(tmpIt)) {
-				return parseBinaryExpression(++wordIt, std::move(expr));
+			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+				parserContext.wordIt++;
+				return parseBinaryExpression(parserContext, std::move(expr));
 			} else {
 				return expr;
 			}
 		case Tag::ID:
-			return parseIdExpression(wordIt);
+			return parseIdExpression(parserContext);
 		default:
-			fmt::printf("Couldn't parse an expression at line %d: wrong tag\n", wordIt->lineNumber);
+			fmt::printf("Couldn't parse an expression at line %d: wrong tag\n", parserContext.wordIt->lineNumber);
 			return nullptr;
 	}
 }
 
-std::unique_ptr<Expression> parseIdExpression(WordIt& wordIt) noexcept {
+std::unique_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept {
 	return nullptr;
 }
 

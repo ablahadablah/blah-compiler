@@ -15,22 +15,29 @@ namespace blahpiler {
 
 using WordIt = std::vector<Word>::const_iterator;
 
-void parse(std::vector<Word> const& words) noexcept;
+struct ParserContext {
+	WordIt wordIt;
+	WordIt endIt;
+	std::vector<std::unique_ptr<Identifier>> identifiersList;
+};
 
-std::unique_ptr<BinaryExpression> parseBinaryExpression(WordIt& wordIt,
-	std::unique_ptr<Expression> lhs) noexcept;
+void parse(std::vector<Word> const& words,
+	std::vector<std::unique_ptr<Identifier>>& identifiers) noexcept;
 
-std::unique_ptr<Expression> parseLiteralExpression(WordIt& wordIt) noexcept;
+std::unique_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
+                                                        std::unique_ptr<Expression> lhs) noexcept;
 
-std::unique_ptr<Expression> parseIdExpression(WordIt& wordIt) noexcept;
+std::unique_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseEntity(WordIt& wordIt) noexcept;
+std::unique_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseFunctionDefinitionStatement(WordIt& wordIt) noexcept;
+std::unique_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseValDefinitionStatement(WordIt& wordIt) noexcept;
+std::unique_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Expression> parseExpression(WordIt& wordIt) noexcept;
+std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept;
+
+std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept;
 
 }
 

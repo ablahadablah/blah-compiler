@@ -21,7 +21,7 @@ int main()
 		fmt::printf("identifier: %s\n", id->name);
 	}
 
-//	parse(parsedWords);
+	parse(parsedWords.first, parsedWords.second);
 
 	return 0;
 }
