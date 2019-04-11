@@ -23,7 +23,7 @@ public:
 	std::string name;
 	std::string type;
 	size_t idIndex;
-	std::unique_ptr<Expression> assignExpression;
+	std::shared_ptr<Expression> assignExpression;
 };
 
 }

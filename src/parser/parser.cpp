@@ -6,11 +6,11 @@
 
 namespace blahpiler {
 
-void parse(std::vector<Word> const& words,
-	std::vector<std::unique_ptr<Identifier>>& identifiers) noexcept {
+std::vector<std::shared_ptr<Entity>> parse(std::vector<Word> const& words,
+	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
 	fmt::printf("parsing the program\n");
 
-	std::vector<std::unique_ptr<Entity>> entities;
+	std::vector<std::shared_ptr<Entity>> entities;
 	ParserContext parserContext;
 	parserContext.wordIt = words.begin();
 	parserContext.endIt = words.end();
@@ -21,12 +21,14 @@ void parse(std::vector<Word> const& words,
 	}
 
 	fmt::printf("Entities num: %d\n", entities.size());
+
+	return entities;
 }
 
-std::unique_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
-                                                        std::unique_ptr<Expression> lhs) noexcept {
+std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
+                                                        std::shared_ptr<Expression> lhs) noexcept {
 	fmt::printf("Parsing a binary expression\n");
-	auto expr = std::make_unique<BinaryExpression>();
+	auto expr = std::make_shared<BinaryExpression>();
 
 	switch (parserContext.wordIt->tag) {
 		case Tag::OR:
@@ -52,21 +54,21 @@ std::unique_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserCon
 	}
 }
 
-std::unique_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept {
+std::shared_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing a literal expression\n");
 
 	switch (parserContext.wordIt->tag) {
 		case Tag::INT:
-			return std::unique_ptr<Expression>(new IntLiteralExpression(std::stoi(parserContext.wordIt->lexeme)));
+			return std::shared_ptr<Expression>(new IntLiteralExpression(std::stoi(parserContext.wordIt->lexeme)));
 		case Tag::DOUBLE:
-			return std::make_unique<DoubleLiteralExpression>(std::stod(parserContext.wordIt->lexeme));
+			return std::make_shared<DoubleLiteralExpression>(std::stod(parserContext.wordIt->lexeme));
 		default:
 			fmt::printf("Some wrong tag, cannot parse a literal expression\n");
 			return nullptr;
 	}
 }
 
-std::unique_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
+std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 	fmt::printf("Parsing an entity\n");
 
 	switch (parserContext.wordIt->tag) {
@@ -93,7 +95,7 @@ std::unique_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 	}
 }
 
-std::unique_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept {
+std::shared_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept {
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ID) {
 		fmt::printf("Couldn't parse function definition at line %d\n", parserContext.wordIt->lineNumber);
@@ -128,9 +130,9 @@ std::unique_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserCo
 	return nullptr;
 }
 
-std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept {
+std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing a val definition\n");
-	auto valDefinitionStmt = std::make_unique<ValDefinitionStatement>();
+	auto valDefinitionStmt = std::make_shared<ValDefinitionStatement>();
 
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ID) {
@@ -177,7 +179,7 @@ std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 	return valDefinitionStmt;
 }
 
-std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
+std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing an expression\n");
 
 	auto const checkForBinaryExpr = [] (WordIt& wordIt) -> bool {
@@ -200,7 +202,7 @@ std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		}
 	};
 
-	std::unique_ptr<Expression> expr = nullptr;
+	std::shared_ptr<Expression> expr = nullptr;
 
 	switch (parserContext.wordIt->tag) {
 		case Tag::OR:
@@ -238,12 +240,12 @@ std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 	}
 }
 
-std::unique_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept {
+std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing an id expression\n");
 
 	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
 		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
-			auto idExpr = std::make_unique<IdExpression>();
+			auto idExpr = std::make_shared<IdExpression>();
 			idExpr->idListIndex = i;
 
 			return idExpr;

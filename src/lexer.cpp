@@ -46,7 +46,7 @@ std::optional<Word> getKeyword(std::string const& lexeme,
 	}
 }
 
-std::unique_ptr<Identifier> handleIdentifier(Word const& word) noexcept {
+std::shared_ptr<Identifier> handleIdentifier(Word const& word) noexcept {
 	auto id = std::make_unique<Identifier>();
 	id->name = word.lexeme;
 
@@ -112,7 +112,7 @@ std::pair<std::optional<Word>, size_t> parseWord(std::string_view inputBuffer) n
 	return std::pair(Word{0, 0, lexeme, Tag::ID}, bufferInd);
 }
 
-std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProgram(
+std::pair<std::vector<Word>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
 	std::string const& inputData) noexcept {
 	size_t lineNumber = 0;
 	size_t posInLine = 0;
@@ -120,7 +120,7 @@ std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProg
 	size_t peekIndex = 0;
 	std::string inputBuffer = inputData;
 	std::vector<Word> parsedWords;
-	std::vector<std::unique_ptr<Identifier>> identifiersList;
+	std::vector<std::shared_ptr<Identifier>> identifiersList;
 	std::set<std::string> identifierNames;
 
 	auto parse = [&] () {
