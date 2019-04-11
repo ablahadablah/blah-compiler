@@ -137,6 +137,13 @@ std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 		fmt::printf("Couldn't parse val definition at line %d: expected an ID\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
+	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
+		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			valDefinitionStmt->idIndex = i;
+			fmt::printf("val definition statemt of an id num %d\n", i);
+			break;
+		}
+	}
 	valDefinitionStmt->name = parserContext.wordIt->lexeme;
 
 	parserContext.wordIt++;
