@@ -8,6 +8,9 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <set>
+
+#include "Identifier.hpp"
 
 namespace blahpiler {
 
@@ -41,6 +44,13 @@ std::optional<Word> getKeyword(std::string const& lexeme,
 	} else {
 		return std::nullopt;
 	}
+}
+
+std::unique_ptr<Identifier> handleIdentifier(Word const& word) noexcept {
+	auto id = std::make_unique<Identifier>();
+	id->name = word.lexeme;
+
+	return id;
 }
 
 // TODO: write a test for the function
@@ -102,13 +112,16 @@ std::pair<std::optional<Word>, size_t> parseWord(std::string_view inputBuffer) n
 	return std::pair(Word{0, 0, lexeme, Tag::ID}, bufferInd);
 }
 
-std::vector<Word> parseProgram(std::string const& inputData) noexcept {
+std::pair<std::vector<Word>, std::vector<std::unique_ptr<Identifier>>> parseProgram(
+	std::string const& inputData) noexcept {
 	size_t lineNumber = 0;
 	size_t posInLine = 0;
 	std::optional<char> peek = std::nullopt;
 	size_t peekIndex = 0;
 	std::string inputBuffer = inputData;
 	std::vector<Word> parsedWords;
+	std::vector<std::unique_ptr<Identifier>> identifiersList;
+	std::set<std::string> identifierNames;
 
 	auto parse = [&] () {
 		auto getch = [&] () {
@@ -129,6 +142,7 @@ std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 				lineNumber++;
 				posInLine = 0;
 				fmt::printf("found a new line %d! \n", lineNumber);
+				getch();
 				continue;
 			}
 
@@ -226,6 +240,19 @@ std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 				peekIndex += bytesNum;
 				posInLine += bytesNum;
 
+				if (parsedWord->tag == Tag::ID) {
+					auto identifier = handleIdentifier(*parsedWord);
+
+					if (identifier != nullptr) {
+						auto idNameIt = identifierNames.find(identifier->name);
+
+						if (idNameIt == identifierNames.end()) {
+							identifierNames.insert(identifier->name);
+							identifiersList.push_back(std::move(identifier));
+						}
+					}
+				}
+
 				parsedWords.push_back(*parsedWord);
 			}
 
@@ -237,7 +264,9 @@ std::vector<Word> parseProgram(std::string const& inputData) noexcept {
 
 	parse();
 
-	return parsedWords;
+	fmt::printf("identifiers num: %d\n", identifiersList.size());
+
+	return std::make_pair(parsedWords, std::move(identifiersList));
 }
 
 }

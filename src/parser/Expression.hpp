@@ -62,6 +62,13 @@ public:
 	~BinaryExpression() = default;
 };
 
+class IdExpression final : public Expression {
+public:
+	size_t idListIndex = 0;
+
+	~IdExpression() override = default;
+};
+
 }
 
 

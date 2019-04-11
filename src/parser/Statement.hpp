@@ -22,6 +22,7 @@ class ValDefinitionStatement : public Statement {
 public:
 	std::string name;
 	std::string type;
+	size_t idIndex;
 	std::unique_ptr<Expression> assignExpression;
 };
 
