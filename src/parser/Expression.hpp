@@ -27,9 +27,9 @@ public:
 //};
 
 class IntLiteralExpression : public Expression {
+public:
 	int32_t value;
 
-public:
 	explicit IntLiteralExpression(int32_t newValue)
 		: value(newValue) {}
 	~IntLiteralExpression() override = default;
