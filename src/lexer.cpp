@@ -206,6 +206,14 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 				parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
 			} else if (peek == '/') {
 				parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
+			} else if (peek == '(') {
+				parsedWords.push_back({lineNumber, posInLine, "(", Tag::LPARENTH});
+			} else if (peek == ')') {
+				parsedWords.push_back({lineNumber, posInLine, ")", Tag::RPARENTH});
+			} else if (peek == '{') {
+				parsedWords.push_back({lineNumber, posInLine, "{", Tag::LBRACE});
+			} else if (peek == '}') {
+				parsedWords.push_back({lineNumber, posInLine, "}", Tag::RBRACE});
 			}
 
 			if (std::isdigit(static_cast<unsigned char>(*peek))) {
