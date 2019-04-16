@@ -13,7 +13,7 @@
 
 namespace blahpiler {
 
-using WordIt = std::vector<Word>::const_iterator;
+using WordIt = std::vector<Token>::const_iterator;
 
 struct ParserContext {
 	WordIt wordIt;
@@ -21,7 +21,7 @@ struct ParserContext {
 	std::vector<std::shared_ptr<Identifier>> identifiersList;
 };
 
-std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Word> const& words,
+std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
                                                                                                std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
 std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
