@@ -6,8 +6,8 @@
 
 namespace blahpiler {
 
-std::vector<std::shared_ptr<Entity>> parse(std::vector<Word> const& words,
-	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Word> const& words,
+                                                                                               std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
 	fmt::printf("parsing the program\n");
 
 	std::vector<std::shared_ptr<Entity>> entities;
@@ -22,7 +22,7 @@ std::vector<std::shared_ptr<Entity>> parse(std::vector<Word> const& words,
 
 	fmt::printf("Entities num: %d\n", entities.size());
 
-	return entities;
+	return std::make_pair(entities, parserContext.identifiersList);
 }
 
 std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,

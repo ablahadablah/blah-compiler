@@ -21,8 +21,8 @@ struct ParserContext {
 	std::vector<std::shared_ptr<Identifier>> identifiersList;
 };
 
-std::vector<std::shared_ptr<Entity>> parse(std::vector<Word> const& words,
-	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Word> const& words,
+                                                                                               std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
 std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
                                                         std::shared_ptr<Expression> lhs) noexcept;

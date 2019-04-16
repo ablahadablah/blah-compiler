@@ -21,9 +21,9 @@ int main() {
 		fmt::printf("identifier: %s\n", id->name);
 	}
 
-	auto entities = parse(parsedWords.first, parsedWords.second);
+	auto [entities, identifiers] = parse(parsedWords.first, parsedWords.second);
 
-	auto translatedCode = blahpiler::translator::translate(entities);
+	auto translatedCode = blahpiler::translator::translate(entities, identifiers);
 
 	fmt::printf("translated code:\n %s\n", translatedCode);
 

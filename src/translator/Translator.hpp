@@ -14,11 +14,12 @@
 
 namespace blahpiler::translator {
 
-std::string translate(std::vector<std::shared_ptr<Entity>> const& entities) noexcept;
+std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
-std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefinitionStmt) noexcept;
+std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefinitionStmt,
+	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
-std::string translateExpression(Expression* expr) noexcept;
+std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
 std::string translateBinaryOperator(BinaryExpression const* expr) noexcept;
 
