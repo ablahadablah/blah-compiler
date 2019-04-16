@@ -18,26 +18,26 @@ using WordIt = std::vector<Word>::const_iterator;
 struct ParserContext {
 	WordIt wordIt;
 	WordIt endIt;
-	std::vector<std::unique_ptr<Identifier>> identifiersList;
+	std::vector<std::shared_ptr<Identifier>> identifiersList;
 };
 
-void parse(std::vector<Word> const& words,
-	std::vector<std::unique_ptr<Identifier>>& identifiers) noexcept;
+std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Word> const& words,
+                                                                                               std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
-std::unique_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
-                                                        std::unique_ptr<Expression> lhs) noexcept;
+std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
+                                                        std::shared_ptr<Expression> lhs) noexcept;
 
-std::unique_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept;
+std::shared_ptr<Expression> parseLiteralExpression(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept;
+std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept;
+std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept;
+std::shared_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept;
+std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept;
 
-std::unique_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept;
+std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept;
 
 }
 

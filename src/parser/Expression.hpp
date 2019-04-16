@@ -27,9 +27,9 @@ public:
 //};
 
 class IntLiteralExpression : public Expression {
+public:
 	int32_t value;
 
-public:
 	explicit IntLiteralExpression(int32_t newValue)
 		: value(newValue) {}
 	~IntLiteralExpression() override = default;
@@ -55,8 +55,8 @@ public:
 
 class BinaryExpression : public Expression {
 public:
-	std::unique_ptr<Expression> lhs;
-	std::unique_ptr<Expression> rhs;
+	std::shared_ptr<Expression> lhs;
+	std::shared_ptr<Expression> rhs;
 	Tag operatorTag;
 
 	~BinaryExpression() = default;
