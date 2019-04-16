@@ -6,7 +6,7 @@
 
 namespace blahpiler {
 
-std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Word> const& words,
+std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
                                                                                                std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
 	fmt::printf("parsing the program\n");
 

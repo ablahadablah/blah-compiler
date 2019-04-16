@@ -22,21 +22,21 @@ constexpr int charToInt(char const sym) {
 
 KeywordTable getKeywordTable() noexcept {
 	KeywordTable keywordTable;
-	keywordTable["if"] = Word{0, 0, "if", Tag::IF};
-	keywordTable["else"] = Word{0, 0, "else", Tag::ELSE};
-	keywordTable["while"] = Word{0, 0, "while", Tag::WHILE};
-	keywordTable["true"] = Word{0, 0, "true", Tag::TRUE};
-	keywordTable["false"] = Word{0, 0, "false", Tag::FALSE};
-	keywordTable["val"] = Word{0, 0, "val", Tag::VAL};
-	keywordTable["var"] = Word{0, 0, "var", Tag::VAR};
-	keywordTable["int"] = Word{0, 0, "int", Tag::TYPE};
-	keywordTable["double"] = Word{0, 0, "double", Tag::TYPE};
-	keywordTable["char"] = Word{0, 0, "char", Tag::TYPE};
+	keywordTable["if"] = Token{0, 0, "if", Tag::IF};
+	keywordTable["else"] = Token{0, 0, "else", Tag::ELSE};
+	keywordTable["while"] = Token{0, 0, "while", Tag::WHILE};
+	keywordTable["true"] = Token{0, 0, "true", Tag::TRUE};
+	keywordTable["false"] = Token{0, 0, "false", Tag::FALSE};
+	keywordTable["val"] = Token{0, 0, "val", Tag::VAL};
+	keywordTable["var"] = Token{0, 0, "var", Tag::VAR};
+	keywordTable["int"] = Token{0, 0, "int", Tag::TYPE};
+	keywordTable["double"] = Token{0, 0, "double", Tag::TYPE};
+	keywordTable["char"] = Token{0, 0, "char", Tag::TYPE};
 
 	return keywordTable;
 }
 
-std::optional<Word> getKeyword(std::string const& lexeme,
+std::optional<Token> getKeyword(std::string const& lexeme,
 	KeywordTable const& keywordTable) noexcept {
 
 	if (auto keywordIt = keywordTable.find(lexeme); keywordIt != keywordTable.end()) {
@@ -46,7 +46,7 @@ std::optional<Word> getKeyword(std::string const& lexeme,
 	}
 }
 
-std::shared_ptr<Identifier> handleIdentifier(Word const& word) noexcept {
+std::shared_ptr<Identifier> handleIdentifier(Token const& word) noexcept {
 	auto id = std::make_unique<Identifier>();
 	id->name = word.lexeme;
 
@@ -55,9 +55,9 @@ std::shared_ptr<Identifier> handleIdentifier(Word const& word) noexcept {
 
 // TODO: write a test for the function
 // somehow return a number of checked symbols, even if the parsing was not successful
-//std::optional<Word> parseNumber(char const* inputBuffer) noexcept {
-std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer) noexcept {
-	std::optional<Word> parsedNumber = std::nullopt;
+//std::optional<Token> parseNumber(char const* inputBuffer) noexcept {
+std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer) noexcept {
+	std::optional<Token> parsedNumber = std::nullopt;
 	size_t bufferInd = 0;
 	int value = 0;
 	std::string lexeme;
@@ -74,7 +74,7 @@ std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer)
 		// parse as a double
 	} else if (symbol == ' ' || symbol == '\n' || symbol == '\0') {
 		// return an int
-		parsedNumber = Word();
+		parsedNumber = Token();
 		parsedNumber->tag = Tag::INT;
 		parsedNumber->lexeme = lexeme;
 	}
@@ -85,7 +85,7 @@ std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer)
 			lexeme += inputBuffer[bufferInd];
 		} while (inputBuffer[++bufferInd] != ' ' && bufferInd < inputBuffer.size());
 
-		parsedNumber = Word();
+		parsedNumber = Token();
 		parsedNumber->tag = Tag::WRONG;
 		parsedNumber->lexeme = lexeme;
 	}
@@ -93,7 +93,7 @@ std::pair<std::optional<Word>, size_t> parseNumber(std::string_view inputBuffer)
 	return std::pair(parsedNumber, bufferInd);
 }
 
-std::pair<std::optional<Word>, size_t> parseWord(std::string_view inputBuffer) noexcept {
+std::pair<std::optional<Token>, size_t> parseWord(std::string_view inputBuffer) noexcept {
 	size_t bufferInd = 0;
 	std::string lexeme;
 
@@ -109,17 +109,17 @@ std::pair<std::optional<Word>, size_t> parseWord(std::string_view inputBuffer) n
 		return std::pair(parsedKeyword, bufferInd);
 	}
 
-	return std::pair(Word{0, 0, lexeme, Tag::ID}, bufferInd);
+	return std::pair(Token{0, 0, lexeme, Tag::ID}, bufferInd);
 }
 
-std::pair<std::vector<Word>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
+std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
 	std::string const& inputData) noexcept {
 	size_t lineNumber = 0;
 	size_t posInLine = 0;
 	std::optional<char> peek = std::nullopt;
 	size_t peekIndex = 0;
 	std::string inputBuffer = inputData;
-	std::vector<Word> parsedWords;
+	std::vector<Token> parsedWords;
 	std::vector<std::shared_ptr<Identifier>> identifiersList;
 	std::set<std::string> identifierNames;
 
