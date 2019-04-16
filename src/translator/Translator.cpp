@@ -20,8 +20,12 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 			fmt::printf("found a var definition statement\n");
 
 			translatedCode += translateVarDefinitionStmt(*varStmt, identifiers);
+		} else if (auto assExpr = std::dynamic_pointer_cast<AssignmentExpression>(entity)) {
+			fmt::printf("found an assignment expression\n");
+
+			translatedCode += translateAssignmentExpression(assExpr.get(), identifiers);
 		} else {
-			fmt::printf("Couldn't parse an entity to anything\n");
+			fmt::printf("Translation failure: unknown entity\n");
 		}
 	}
 
@@ -107,6 +111,25 @@ std::string translateBinaryOperator(BinaryExpression const* expr) noexcept {
 		fmt::printf("found an unknown binary operator\n");
 		return "";
 	}
+}
+
+std::string translateAssignmentExpression(AssignmentExpression const* expr,
+	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+
+	if (identifiers[expr->lvalueIdIndex]->isConst) {
+		fmt::printf("Couldn't parse an assignment expression: lvalue is const\n");
+		return "";
+	} else if (expr->lvalueIdIndex >= identifiers.size()) {
+		fmt::printf("Couldn't parse an assignment expression: wrong id index\n");
+		return "";
+	}
+
+	translatedCode += identifiers[expr->lvalueIdIndex]->name;
+	translatedCode += " = ";
+	translatedCode += translateExpression(expr->exprToAssign.get(), identifiers);
+
+	return translatedCode;
 }
 
 }

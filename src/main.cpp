@@ -8,8 +8,8 @@ int main() {
 	std::cout << "Hello, World!" << std::endl;
 //	std::string sourceCode = "& if && < > = while 759 == <= >= else int char val var";
 	std::string sourceCode = "var someVal : int = 395 + 59 \n"
-						    "val anotherVal : int = someVal + 105 \n"
-							"";
+						     "val anotherVal : int = someVal + 105 \n"
+	                         "someVal = anotherVal + 1 \n";
 
 	auto parsedWords = blahpiler::parseProgram(sourceCode);
 

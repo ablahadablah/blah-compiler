@@ -69,6 +69,14 @@ public:
 	~IdExpression() override = default;
 };
 
+class AssignmentExpression final : public Expression {
+public:
+	size_t lvalueIdIndex;
+	std::shared_ptr<Expression> exprToAssign;
+
+	~AssignmentExpression() override = default;
+};
+
 }
 
 
