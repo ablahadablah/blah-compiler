@@ -24,6 +24,10 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 			fmt::printf("found an assignment expression\n");
 
 			translatedCode += translateAssignmentExpression(assExpr.get(), identifiers);
+		} else if (auto ifElseStmt = std::dynamic_pointer_cast<IfElseStatement>(entity)) {
+			fmt::printf("found an if-then-else expression\n");
+
+			translatedCode += translateIfElseStatement(ifElseStmt.get(), identifiers);
 		} else {
 			fmt::printf("Translation failure: unknown entity\n");
 		}
@@ -89,16 +93,22 @@ std::string translateVarDefinitionStmt(VarDefinitionStatement const& varDefiniti
 }
 
 std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	fmt::printf("translating an expression\n");
 	std::string translatedCode;
 
 	if (auto binaryExpr = dynamic_cast<BinaryExpression*>(expr)) {
+		fmt::printf("found a binary expression\n");
 		translatedCode += translateExpression(binaryExpr->lhs.get(), identifiers);
 		translatedCode += translateBinaryOperator(binaryExpr);
 		translatedCode += translateExpression(binaryExpr->rhs.get(), identifiers);
 	} else if (auto idExpr = dynamic_cast<IdExpression*>(expr)) {
+		fmt::printf("found an id expression\n");
 		translatedCode += identifiers[idExpr->idListIndex]->name;
 	} else if (auto intExpr = dynamic_cast<IntLiteralExpression*>(expr)) {
+		fmt::printf("found an int literal expression\n");
 		translatedCode += std::to_string(intExpr->value);
+	} else {
+		fmt::printf("couldn't translate an expression\n");
 	}
 
 	return translatedCode;
@@ -156,6 +166,26 @@ std::string translateAssignmentExpression(AssignmentExpression const* expr,
 	translatedCode += " = ";
 	translatedCode += translateExpression(expr->exprToAssign.get(), identifiers);
 	translatedCode += "; \n";
+
+	return translatedCode;
+}
+
+std::string translateIfElseStatement(IfElseStatement const* ifElseStatement,
+                                     std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+
+	translatedCode += "if (";
+	translatedCode += translateExpression(ifElseStatement->conditionExpression.get(), identifiers);
+	translatedCode += ") { ";
+
+	translatedCode += translate(ifElseStatement->thenEntities, identifiers);
+
+	if (!ifElseStatement->elseEntities.empty()) {
+		translatedCode += "} else { ";
+		translatedCode += translate(ifElseStatement->elseEntities, identifiers);
+	}
+
+	translatedCode += "} \n";
 
 	return translatedCode;
 }

@@ -28,6 +28,9 @@ std::string translateBinaryOperator(BinaryExpression const* expr) noexcept;
 
 std::string translateAssignmentExpression(AssignmentExpression const* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
+std::string translateIfElseStatement(IfElseStatement const* ifElseStatement,
+                                       std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 }
 
 

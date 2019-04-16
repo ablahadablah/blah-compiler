@@ -23,7 +23,9 @@ constexpr int charToInt(char const sym) {
 KeywordTable getKeywordTable() noexcept {
 	KeywordTable keywordTable;
 	keywordTable["if"] = Token{0, 0, "if", Tag::IF};
+	keywordTable["then"] = Token{0, 0, "then", Tag::THEN};
 	keywordTable["else"] = Token{0, 0, "else", Tag::ELSE};
+	keywordTable["end"] = Token{0, 0, "end", Tag::END};
 	keywordTable["while"] = Token{0, 0, "while", Tag::WHILE};
 	keywordTable["true"] = Token{0, 0, "true", Tag::TRUE};
 	keywordTable["false"] = Token{0, 0, "false", Tag::FALSE};
