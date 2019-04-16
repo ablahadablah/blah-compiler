@@ -61,6 +61,7 @@ std::shared_ptr<Expression> parseLiteralExpression(ParserContext& parserContext)
 
 	switch (parserContext.wordIt->tag) {
 		case Tag::INT:
+			fmt::printf("returning an int literal expr\n");
 			return std::shared_ptr<Expression>(new IntLiteralExpression(std::stoi(parserContext.wordIt->lexeme)));
 		case Tag::DOUBLE:
 			return std::make_shared<DoubleLiteralExpression>(std::stod(parserContext.wordIt->lexeme));
@@ -102,7 +103,7 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 		case Tag::ID:
 			return parseAssignmentExpression(parserContext);
 		case Tag::IF:
-			parseIfStatement(parserContext);
+			return parseIfStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -384,6 +385,8 @@ std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept 
 		return nullptr;
 	}
 
+	ifElseStmt->conditionExpression = condExpr;
+
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::RPARENTH) {
 		fmt::printf("Couldn't parse an if statement at %d, %d: expected ')'.\n",
@@ -419,6 +422,10 @@ std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept 
 			parserContext.wordIt++;
 		}
 	}
+
+//	if (parserContext.wordIt->tag == Tag::END) {
+//		parserContext.wordIt++;
+//	}
 
 	// what if there's no end?
 
