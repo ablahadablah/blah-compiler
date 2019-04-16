@@ -104,6 +104,8 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseAssignmentExpression(parserContext);
 		case Tag::IF:
 			return parseIfStatement(parserContext);
+		case Tag::WHILE:
+			return parseWhileStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -430,6 +432,55 @@ std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept 
 	// what if there's no end?
 
 	return ifElseStmt;
+}
+
+std::shared_ptr<Entity> parseWhileStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a while statement\n");
+
+	auto whileStmt = std::make_shared<WhileStatement>();
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::LPARENTH) {
+		fmt::printf("Couldn't parse a while statement at %d, %d: expected '('.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	auto condExpr = parseExpression(parserContext);
+
+	if (condExpr == nullptr) {
+		fmt::printf("Couldn't parse a while statement at %d, %d: error parsing a condition expression.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	whileStmt->conditionExpression = condExpr;
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::RPARENTH) {
+		fmt::printf("Couldn't parse a while statement at %d, %d: expected ')'.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::DO) {
+		fmt::printf("Couldn't parse a while statement at %d, %d: expected 'do' token.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	std::vector<std::shared_ptr<Entity>> entities;
+	fmt::printf("parsing the 'do' block\n");
+
+	while (parserContext.wordIt->tag != Tag::END) {
+		whileStmt->entities.push_back(parseEntity(parserContext));
+		parserContext.wordIt++;
+	}
+
+	return whileStmt;
 }
 
 }
