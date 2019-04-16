@@ -23,6 +23,8 @@ std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Id
 
 std::string translateBinaryOperator(BinaryExpression const* expr) noexcept;
 
+std::string translateAssignmentExpression(AssignmentExpression const* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 }
 
 
