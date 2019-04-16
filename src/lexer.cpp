@@ -27,6 +27,7 @@ KeywordTable getKeywordTable() noexcept {
 	keywordTable["else"] = Token{0, 0, "else", Tag::ELSE};
 	keywordTable["end"] = Token{0, 0, "end", Tag::END};
 	keywordTable["while"] = Token{0, 0, "while", Tag::WHILE};
+	keywordTable["do"] = Token{0, 0, "do", Tag::DO};
 	keywordTable["true"] = Token{0, 0, "true", Tag::TRUE};
 	keywordTable["false"] = Token{0, 0, "false", Tag::FALSE};
 	keywordTable["val"] = Token{0, 0, "val", Tag::VAL};

@@ -41,6 +41,14 @@ public:
 	~IfElseStatement() override = default;
 };
 
+class WhileStatement final : public Statement {
+public:
+	std::shared_ptr<Expression> conditionExpression;
+	std::vector<std::shared_ptr<Entity>> entities;
+
+	~WhileStatement() override = default;
+};
+
 }
 
 #endif //BLAHCOMPILER_STATEMENT_HPP

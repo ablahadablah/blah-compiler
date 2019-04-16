@@ -28,6 +28,10 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 			fmt::printf("found an if-then-else expression\n");
 
 			translatedCode += translateIfElseStatement(ifElseStmt.get(), identifiers);
+		} else if (auto whileStmt = std::dynamic_pointer_cast<WhileStatement>(entity)) {
+			fmt::printf("found a while statement\n");
+
+			translatedCode += translateWhileStatement(whileStmt.get(), identifiers);
 		} else {
 			fmt::printf("Translation failure: unknown entity\n");
 		}
@@ -185,6 +189,20 @@ std::string translateIfElseStatement(IfElseStatement const* ifElseStatement,
 		translatedCode += translate(ifElseStatement->elseEntities, identifiers);
 	}
 
+	translatedCode += "} \n";
+
+	return translatedCode;
+}
+
+std::string translateWhileStatement(WhileStatement const* whileStatement,
+                                     std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+
+	translatedCode += "while (";
+	translatedCode += translateExpression(whileStatement->conditionExpression.get(), identifiers);
+	translatedCode += ") { ";
+
+	translatedCode += translate(whileStatement->entities, identifiers);
 	translatedCode += "} \n";
 
 	return translatedCode;

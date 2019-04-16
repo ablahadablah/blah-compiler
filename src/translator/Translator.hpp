@@ -31,6 +31,9 @@ std::string translateAssignmentExpression(AssignmentExpression const* expr, std:
 std::string translateIfElseStatement(IfElseStatement const* ifElseStatement,
                                        std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
+std::string translateWhileStatement(WhileStatement const* whileStatement,
+                                    std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 }
 
 
