@@ -16,6 +16,10 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 			fmt::print("found a val definition statement\n");
 
 			translatedCode += translateValDefinitionStmt(*valDefStmt, identifiers);
+		} else if (auto varStmt = std::dynamic_pointer_cast<VarDefinitionStatement>(entity)) {
+			fmt::printf("found a var definition statement\n");
+
+			translatedCode += translateVarDefinitionStmt(*varStmt, identifiers);
 		} else {
 			fmt::printf("Couldn't parse an entity to anything\n");
 		}
@@ -53,6 +57,33 @@ std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefiniti
 	return translatedCode;
 }
 
+std::string translateVarDefinitionStmt(VarDefinitionStatement const& varDefinitionStmt,
+                                       std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+	auto id = identifiers[varDefinitionStmt.idIndex];
+
+	if (identifiers[varDefinitionStmt.idIndex]->type == "int") {
+		translatedCode += "int ";
+	} else if (identifiers[varDefinitionStmt.idIndex]->type == "char") {
+		translatedCode += "char ";
+	} else {
+		fmt::printf("Couldn't translate var definition statement\n");
+		return "";
+	}
+
+	translatedCode += id->name;
+
+	if (varDefinitionStmt.assignExpression != nullptr) {
+		translatedCode += " = ";
+
+		translatedCode += translateExpression(varDefinitionStmt.assignExpression.get(), identifiers);
+	}
+
+	translatedCode += ";";
+
+	return translatedCode;
+}
+
 std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
 	std::string translatedCode;
 
@@ -62,7 +93,6 @@ std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Id
 		translatedCode += translateExpression(binaryExpr->rhs.get(), identifiers);
 	} else if (auto idExpr = dynamic_cast<IdExpression*>(expr)) {
 		translatedCode += identifiers[idExpr->idListIndex]->name;
-		translatedCode += std::to_string(idExpr->idListIndex);
 	} else if (auto intExpr = dynamic_cast<IntLiteralExpression*>(expr)) {
 		translatedCode += std::to_string(intExpr->value);
 	}

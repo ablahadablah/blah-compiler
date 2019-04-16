@@ -19,6 +19,9 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefinitionStmt,
 	std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
+std::string translateVarDefinitionStmt(VarDefinitionStatement const& valDefinitionStmt,
+                                       std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
 std::string translateBinaryOperator(BinaryExpression const* expr) noexcept;
