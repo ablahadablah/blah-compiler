@@ -89,6 +89,8 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseFunctionDefinitionStatement(parserContext);
 		case Tag::VAL:
 			return parseValDefinitionStatement(parserContext);
+		case Tag::ID:
+			return parseAssignmentExpression(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -255,6 +257,38 @@ std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noex
 	fmt::printf("identifier is not defined: %s\n", parserContext.wordIt->lexeme);
 
 	return nullptr;
+}
+
+std::shared_ptr<Expression> parseAssignmentExpression(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing an assignment expression\n");
+
+	auto assignExpr = std::make_shared<AssignmentExpression>();
+
+	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
+		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			assignExpr->lvalueIdIndex = i;
+			break;
+		}
+	}
+	parserContext.wordIt++;
+
+	if (parserContext.wordIt->tag != Tag::ASSIGN) {
+		fmt::printf("Couldn't parse an assignment expression at %d, %d: expected an assignment \n",
+			parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+	parserContext.wordIt++;
+
+	auto parsedExpr = parseExpression(parserContext);
+
+	if (parsedExpr == nullptr) {
+		fmt::printf("Couldn't parse an assignment expression at %d, %d: expected an expression to assign \n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+	}
+
+	assignExpr->exprToAssign = parsedExpr;
+
+	return assignExpr;
 }
 
 }
