@@ -128,6 +128,7 @@ std::string translateAssignmentExpression(AssignmentExpression const* expr,
 	translatedCode += identifiers[expr->lvalueIdIndex]->name;
 	translatedCode += " = ";
 	translatedCode += translateExpression(expr->exprToAssign.get(), identifiers);
+	translatedCode += "; \n";
 
 	return translatedCode;
 }
