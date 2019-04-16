@@ -37,6 +37,8 @@ std::shared_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserCo
 
 std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept;
 
+std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& parserContext) noexcept;
+
 std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept;
 
 }

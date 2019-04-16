@@ -26,6 +26,14 @@ public:
 	std::shared_ptr<Expression> assignExpression;
 };
 
+class VarDefinitionStatement : public Statement {
+public:
+//	std::string name;
+//	std::string type;
+	size_t idIndex;
+	std::shared_ptr<Expression> assignExpression;
+};
+
 }
 
 #endif //BLAHCOMPILER_STATEMENT_HPP

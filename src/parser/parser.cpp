@@ -89,6 +89,8 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseFunctionDefinitionStatement(parserContext);
 		case Tag::VAL:
 			return parseValDefinitionStatement(parserContext);
+		case Tag::VAR:
+			return parseVarDefinitionStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -177,6 +179,58 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 	valDefinitionStmt->assignExpression = std::move(initExpression);
 
 	return valDefinitionStmt;
+}
+
+std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a var definition\n");
+	auto varDefinitionStmt = std::make_shared<VarDefinitionStatement>();
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::ID) {
+		fmt::printf("Couldn't parse var definition at line %d: expected an ID\n", parserContext.wordIt->lineNumber);
+		return nullptr;
+	}
+
+	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
+		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			varDefinitionStmt->idIndex = i;
+			fmt::printf("var definition statement of an id num %d\n", i);
+			break;
+		} else {
+			fmt::printf("Couldn't find an identifier: %s\n", parserContext.wordIt->lexeme);
+			return nullptr;
+		}
+	}
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::COLON) {
+		fmt::printf("Couldn't parse var definition at line %d: expected a colon\n", parserContext.wordIt->lineNumber);
+		return nullptr;
+	}
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::TYPE) {
+		fmt::printf("Couldn't parse var at line %d: expected a type\n", parserContext.wordIt->lineNumber);
+		return nullptr;
+	}
+	parserContext.identifiersList[varDefinitionStmt->idIndex]->type = parserContext.wordIt->lexeme;
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::ASSIGN) {
+		fmt::printf("Couldn't parse var definition at line %d: expected an assignment \n", parserContext.wordIt->lineNumber);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	auto initExpression = parseExpression(parserContext);
+
+	if (initExpression == nullptr) {
+		fmt::printf("Couldn't parse var definition at line %d: expected an init expression \n", parserContext.wordIt->lineNumber);
+		return nullptr;
+	}
+
+	varDefinitionStmt->assignExpression = std::move(initExpression);
+
+	return varDefinitionStmt;
 }
 
 std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
