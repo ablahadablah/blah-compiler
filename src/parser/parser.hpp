@@ -43,6 +43,8 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 
 std::shared_ptr<Expression> parseAssignmentExpression(ParserContext& parserContext) noexcept;
 
+std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept;
+
 }
 
 

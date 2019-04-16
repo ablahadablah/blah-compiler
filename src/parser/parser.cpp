@@ -101,6 +101,8 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseVarDefinitionStatement(parserContext);
 		case Tag::ID:
 			return parseAssignmentExpression(parserContext);
+		case Tag::IF:
+			parseIfStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -359,6 +361,68 @@ std::shared_ptr<Expression> parseAssignmentExpression(ParserContext& parserConte
 	assignExpr->exprToAssign = parsedExpr;
 
 	return assignExpr;
+}
+
+std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing an if statement\n");
+
+	auto ifElseStmt = std::make_shared<IfElseStatement>();
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::LPARENTH) {
+		fmt::printf("Couldn't parse an if statement at %d, %d: expected '('.\n",
+			parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	auto condExpr = parseExpression(parserContext);
+
+	if (condExpr == nullptr) {
+		fmt::printf("Couldn't parse an if statement at %d, %d: error parsing a condition expression.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::RPARENTH) {
+		fmt::printf("Couldn't parse an if statement at %d, %d: expected ')'.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	if (parserContext.wordIt->tag != Tag::THEN) {
+		fmt::printf("Couldn't parse an if statement at %d, %d: expected 'then'.\n",
+		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		return nullptr;
+	}
+
+	parserContext.wordIt++;
+	std::vector<std::shared_ptr<Entity>> entities;
+	fmt::printf("parsing the 'then' block\n");
+	if (parserContext.wordIt->tag == Tag::ID) {
+		fmt::printf("an id after 'then' %s\n", parserContext.wordIt->lexeme);
+	}
+
+	while (parserContext.wordIt->tag != Tag::END && parserContext.wordIt->tag != Tag::ELSE) {
+		ifElseStmt->thenEntities.push_back(parseEntity(parserContext));
+		parserContext.wordIt++;
+	}
+
+	fmt::printf("parsing the 'else' block\n");
+	if (parserContext.wordIt->tag == Tag::ELSE) {
+		parserContext.wordIt++;
+
+		while (parserContext.wordIt->tag != Tag::END) {
+			ifElseStmt->elseEntities.push_back(parseEntity(parserContext));
+			parserContext.wordIt++;
+		}
+	}
+
+	// what if there's no end?
+
+	return ifElseStmt;
 }
 
 }

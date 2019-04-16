@@ -28,10 +28,17 @@ public:
 
 class VarDefinitionStatement : public Statement {
 public:
-//	std::string name;
-//	std::string type;
 	size_t idIndex;
 	std::shared_ptr<Expression> assignExpression;
+};
+
+class IfElseStatement final : public Statement {
+public:
+	std::shared_ptr<Expression> conditionExpression;
+	std::vector<std::shared_ptr<Entity>> thenEntities;
+	std::vector<std::shared_ptr<Entity>> elseEntities;
+
+	~IfElseStatement() override = default;
 };
 
 }
