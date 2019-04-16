@@ -43,6 +43,8 @@ std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserCon
 		case Tag::MINUS:
 		case Tag::MUL:
 		case Tag::DIV:
+		case Tag::MOD:
+		case Tag::NE:
 			expr->lhs = std::move(lhs);
 			expr->operatorTag = parserContext.wordIt->tag;
 			parserContext.wordIt++;
@@ -80,6 +82,12 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 		case Tag::GT:
 		case Tag::LE:
 		case Tag::LT:
+		case Tag::PLUS:
+		case Tag::MINUS:
+		case Tag::MUL:
+		case Tag::DIV:
+		case Tag::MOD:
+		case Tag::NE:
 			// need to somehow access the previous token
 //			return parseBinaryExpression(wordIt);
 			return nullptr;
@@ -252,6 +260,8 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 			case Tag::MINUS:
 			case Tag::MUL:
 			case Tag::DIV:
+			case Tag::MOD:
+			case Tag::NE:
 				return true;
 			default:
 				return false;
@@ -269,6 +279,12 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		case Tag::GT:
 		case Tag::LE:
 		case Tag::LT:
+		case Tag::PLUS:
+		case Tag::MINUS:
+		case Tag::MUL:
+		case Tag::DIV:
+		case Tag::MOD:
+		case Tag::NE:
 			// need to somehow access the previous token
 //			return parseBinaryExpression(wordIt);
 			return nullptr;

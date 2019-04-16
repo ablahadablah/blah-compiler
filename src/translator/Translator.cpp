@@ -105,11 +105,38 @@ std::string translateExpression(Expression* expr, std::vector<std::shared_ptr<Id
 }
 
 std::string translateBinaryOperator(BinaryExpression const* expr) noexcept {
-	if (expr->operatorTag == Tag::PLUS) {
-		return " + ";
-	} else {
-		fmt::printf("found an unknown binary operator\n");
-		return "";
+	switch (expr->operatorTag) {
+		case Tag::PLUS:
+			return " + ";
+		case Tag::OR:
+			return " || ";
+		case Tag::AND:
+			return " && ";
+		case Tag::ASSIGN:
+			return " = ";
+		case Tag::EQ:
+			return " == ";
+		case Tag::GE:
+			return " >= ";
+		case Tag::GT:
+			return " > ";
+		case Tag::LE:
+			return " <= ";
+		case Tag::LT:
+			return " < ";
+		case Tag::MINUS:
+			return " - ";
+		case Tag::MUL:
+			return " * ";
+		case Tag::DIV:
+			return " / ";
+		case Tag::MOD:
+			return " % ";
+		case Tag::NE:
+			return " != ";
+		default:
+			fmt::printf("found an unknown binary operator\n");
+			return "";
 	}
 }
 

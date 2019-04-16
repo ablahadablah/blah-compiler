@@ -196,6 +196,14 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 				}
 
 				posInLine++;
+			} else if (peek == '!') {
+				getch();
+
+				if (peek == '=') {
+					parsedWords.push_back({lineNumber, posInLine, "!=", Tag::NE});
+				} else {
+					parsedWords.push_back({lineNumber, posInLine, "!", Tag::NEG});
+				}
 			} else if (peek == ':') {
 				parsedWords.push_back({lineNumber, posInLine, ":", Tag::COLON});
 			} else if (peek == '+') {
@@ -214,6 +222,8 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 				parsedWords.push_back({lineNumber, posInLine, "{", Tag::LBRACE});
 			} else if (peek == '}') {
 				parsedWords.push_back({lineNumber, posInLine, "}", Tag::RBRACE});
+			} else if (peek == '%') {
+				parsedWords.push_back({lineNumber, posInLine, "%", Tag::MOD});
 			}
 
 			if (std::isdigit(static_cast<unsigned char>(*peek))) {
