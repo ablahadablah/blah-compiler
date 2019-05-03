@@ -32,6 +32,9 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 			fmt::printf("found a while statement\n");
 
 			translatedCode += translateWhileStatement(whileStmt.get(), identifiers);
+		} else if (auto blockStmt = std::dynamic_pointer_cast<NestedBlockStatement>(entity)) {
+			fmt::printf("Found a nested block statement\n");
+			translatedCode += translateNestedBlockStatement(blockStmt.get(), identifiers);
 		} else {
 			fmt::printf("Translation failure: unknown entity\n");
 		}
@@ -206,6 +209,11 @@ std::string translateWhileStatement(WhileStatement const* whileStatement,
 	translatedCode += "} \n";
 
 	return translatedCode;
+}
+
+std::string translateNestedBlockStatement(NestedBlockStatement const* stmt,
+                                          std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	return "{ \n" + translate(stmt->entities, identifiers) + "\n } \n";
 }
 
 }

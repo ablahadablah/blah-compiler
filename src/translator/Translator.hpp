@@ -34,6 +34,9 @@ std::string translateIfElseStatement(IfElseStatement const* ifElseStatement,
 std::string translateWhileStatement(WhileStatement const* whileStatement,
                                     std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
+std::string translateNestedBlockStatement(NestedBlockStatement const* stmt,
+                                    std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 }
 
 
