@@ -35,10 +35,9 @@ public:
 	~IntLiteralExpression() override = default;
 };
 
-class DoubleLiteralExpression : public Expression {
+struct DoubleLiteralExpression : public Expression {
 	double value;
 
-public:
 	explicit DoubleLiteralExpression(double newValue)
 		: value(newValue) {}
 	~DoubleLiteralExpression() override = default;

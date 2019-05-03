@@ -4,6 +4,8 @@
 #include <string>
 #include <algorithm>
 
+#include "Identifier.hpp"
+
 namespace blahpiler {
 
 std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
@@ -181,7 +183,14 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 		fmt::printf("Couldn't parse val at line %d: expected a type\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	valDefinitionStmt->type = parserContext.wordIt->lexeme;
+	parserContext.identifiersList[valDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
+	auto& type = parserContext.wordIt->lexeme;
+
+	if (type == "int") {
+		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::INT;
+	} else if (type == "double") {
+		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+	}
 
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ASSIGN) {
@@ -233,7 +242,14 @@ std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& parserContext
 		fmt::printf("Couldn't parse var at line %d: expected a type\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.identifiersList[varDefinitionStmt->idIndex]->type = parserContext.wordIt->lexeme;
+	parserContext.identifiersList[varDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
+	auto const& type = parserContext.wordIt->lexeme;
+
+	if (type == "int") {
+		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::INT;
+	} else if (type == "double") {
+		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+	}
 
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ASSIGN) {
@@ -328,6 +344,7 @@ std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noex
 
 	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
 		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			fmt::printf("found an id of type: %s\n", parserContext.identifiersList[i]->typeLexeme);
 			auto idExpr = std::make_shared<IdExpression>();
 			idExpr->idListIndex = i;
 

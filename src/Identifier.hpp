@@ -17,7 +17,8 @@ enum class IdentifierType {
 class Identifier {
 public:
 	std::string name;
-	std::string type;
+	std::string typeLexeme;
+	IdentifierType type;
 	bool isConst;
 
 	virtual ~Identifier() = default;
