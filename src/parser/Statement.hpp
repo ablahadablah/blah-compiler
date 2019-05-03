@@ -49,6 +49,12 @@ public:
 	~WhileStatement() override = default;
 };
 
+struct NestedBlockStatement final : public Statement {
+	std::vector<std::shared_ptr<Entity>> entities;
+
+	~NestedBlockStatement() override = default;
+};
+
 }
 
 #endif //BLAHCOMPILER_STATEMENT_HPP

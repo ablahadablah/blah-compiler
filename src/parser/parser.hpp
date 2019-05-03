@@ -47,6 +47,7 @@ std::shared_ptr<Entity> parseIfStatement(ParserContext& parserContext) noexcept;
 
 std::shared_ptr<Entity> parseWhileStatement(ParserContext& parserContext) noexcept;
 
+std::shared_ptr<Entity> parseNestedBlockStatement(ParserContext& parserContext) noexcept;
 }
 
 
