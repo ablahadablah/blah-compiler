@@ -108,6 +108,10 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseWhileStatement(parserContext);
 		case Tag::LBRACE:
 			return parseNestedBlockStatement(parserContext);
+		case Tag::READ:
+			return parseReadStatement(parserContext);
+		case Tag::WRITE:
+			return parseWriteStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -495,6 +499,28 @@ std::shared_ptr<Entity> parseNestedBlockStatement(ParserContext& parserContext) 
 		stmt->entities.push_back(parseEntity(parserContext));
 		parserContext.wordIt++;
 	}
+
+	return stmt;
+}
+
+std::shared_ptr<Entity> parseReadStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a read statement\n");
+
+	auto stmt = std::make_shared<ReadStatement>();
+	parserContext.wordIt++;
+
+	stmt->operand = parseExpression(parserContext);
+
+	return stmt;
+}
+
+std::shared_ptr<Entity> parseWriteStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a write statement\n");
+
+	auto stmt = std::make_shared<WriteStatement>();
+	parserContext.wordIt++;
+
+	stmt->operand = parseExpression(parserContext);
 
 	return stmt;
 }

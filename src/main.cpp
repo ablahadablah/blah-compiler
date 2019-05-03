@@ -8,9 +8,9 @@ int main() {
 	std::cout << "Hello, World!" << std::endl;
 //	std::string sourceCode = "& if && < > = while 759 == <= >= else int char val var";
 	std::string sourceCode = "var someVal : int = 395 + 59 \n"
-						     "{ val anotherVal : int = someVal + 105 } \n"
-	                         "if (anotherVal == 3 ) then someVal = 2 else someVal = 1 end \n"
-						  "while (someVal >= 0 ) do someVal = someVal - 1 end \n";
+	                         "read someVal \n"
+						  "val anotherVal : int = someVal + 105 \n"
+						  "write anotherVal \n";
 
 	auto parsedWords = blahpiler::parseProgram(sourceCode);
 

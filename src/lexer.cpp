@@ -35,6 +35,8 @@ KeywordTable getKeywordTable() noexcept {
 	keywordTable["int"] = Token{0, 0, "int", Tag::TYPE};
 	keywordTable["double"] = Token{0, 0, "double", Tag::TYPE};
 	keywordTable["char"] = Token{0, 0, "char", Tag::TYPE};
+	keywordTable["read"] = Token{0, 0, "read", Tag::READ};
+	keywordTable["write"] = Token{0, 0, "write", Tag::WRITE};
 
 	return keywordTable;
 }
