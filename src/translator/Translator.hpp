@@ -37,6 +37,12 @@ std::string translateWhileStatement(WhileStatement const* whileStatement,
 std::string translateNestedBlockStatement(NestedBlockStatement const* stmt,
                                     std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
 
+std::string translateReadStatement(ReadStatement const* stmt,
+                                          std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
+std::string translateWriteStatement(WriteStatement const* stmt,
+                                          std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept;
+
 }
 
 

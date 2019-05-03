@@ -35,6 +35,12 @@ std::string translate(std::vector<std::shared_ptr<Entity>> const& entities, std:
 		} else if (auto blockStmt = std::dynamic_pointer_cast<NestedBlockStatement>(entity)) {
 			fmt::printf("Found a nested block statement\n");
 			translatedCode += translateNestedBlockStatement(blockStmt.get(), identifiers);
+		} else if (auto readStmt = std::dynamic_pointer_cast<ReadStatement>(entity)) {
+			fmt::printf("found a read statement\n");
+			translatedCode += translateReadStatement(readStmt.get(), identifiers);
+		} else if (auto writeStmt = std::dynamic_pointer_cast<WriteStatement>(entity)) {
+			fmt::printf("found a write statement\n");
+			translatedCode += translateWriteStatement(writeStmt.get(), identifiers);
 		} else {
 			fmt::printf("Translation failure: unknown entity\n");
 		}
@@ -50,10 +56,10 @@ std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefiniti
 
 	translatedCode += "const ";
 
-	if (valDefinitionStmt.type == "int") {
+	if (identifiers[valDefinitionStmt.idIndex]->type == IdentifierType::INT) {
 		translatedCode += "int ";
-	} else if (valDefinitionStmt.type == "char") {
-		translatedCode += "char ";
+	} else if (identifiers[valDefinitionStmt.idIndex]->type == IdentifierType::DOUBLE) {
+		translatedCode += "double ";
 	} else {
 		fmt::printf("Couldn't translate val definition statement\n");
 		return "";
@@ -67,7 +73,7 @@ std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefiniti
 		translatedCode += translateExpression(valDefinitionStmt.assignExpression.get(), identifiers);
 	}
 
-	translatedCode += ";";
+	translatedCode += ";\n";
 
 	return translatedCode;
 }
@@ -77,12 +83,12 @@ std::string translateVarDefinitionStmt(VarDefinitionStatement const& varDefiniti
 	std::string translatedCode;
 	auto id = identifiers[varDefinitionStmt.idIndex];
 
-	if (identifiers[varDefinitionStmt.idIndex]->type == "int") {
+	if (identifiers[varDefinitionStmt.idIndex]->type == IdentifierType::INT) {
 		translatedCode += "int ";
-	} else if (identifiers[varDefinitionStmt.idIndex]->type == "char") {
-		translatedCode += "char ";
+	} else if (identifiers[varDefinitionStmt.idIndex]->type == IdentifierType::DOUBLE) {
+		translatedCode += "double ";
 	} else {
-		fmt::printf("Couldn't translate var definition statement\n");
+		fmt::printf("Couldn't translate var definition statement: unknown type\n");
 		return "";
 	}
 
@@ -94,7 +100,7 @@ std::string translateVarDefinitionStmt(VarDefinitionStatement const& varDefiniti
 		translatedCode += translateExpression(varDefinitionStmt.assignExpression.get(), identifiers);
 	}
 
-	translatedCode += ";";
+	translatedCode += ";\n";
 
 	return translatedCode;
 }
@@ -214,6 +220,58 @@ std::string translateWhileStatement(WhileStatement const* whileStatement,
 std::string translateNestedBlockStatement(NestedBlockStatement const* stmt,
                                           std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
 	return "{ \n" + translate(stmt->entities, identifiers) + "\n } \n";
+}
+
+std::string translateReadStatement(ReadStatement const* stmt,
+                                   std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+
+	if (auto idExpr = std::dynamic_pointer_cast<IdExpression>(stmt->operand)) {
+		fmt::printf("found an id expr in the operand: %s\n", identifiers[idExpr->idListIndex]->name);
+		fmt::printf("id expr type: %s, %d\n", identifiers[idExpr->idListIndex]->typeLexeme, static_cast<int>(identifiers[idExpr->idListIndex]->type));
+		switch (identifiers[idExpr->idListIndex]->type) {
+			case IdentifierType::INT:
+				translatedCode += fmt::format("scanf(\"%d\", &{}); \n", identifiers[idExpr->idListIndex]->name);
+				break;
+			case IdentifierType::DOUBLE:
+				translatedCode += fmt::format("scanf(\"%f\", &{}); \n", identifiers[idExpr->idListIndex]->name);
+				break;
+			default:
+				fmt::printf("Cannot translate read statement: unknown operand type\n");
+		}
+	} else {
+		fmt::printf("Cannot translate read statement: operand should be an identifier\n");
+	}
+
+	return translatedCode;
+}
+
+std::string translateWriteStatement(WriteStatement const* stmt,
+                                    std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+	std::string translatedCode;
+
+	if (auto idExpr = std::dynamic_pointer_cast<IdExpression>(stmt->operand)) {
+		fmt::printf("found an id expr in the operand: %s\n", identifiers[idExpr->idListIndex]->name);
+		fmt::printf("id expr type: %s, %d\n", identifiers[idExpr->idListIndex]->typeLexeme, static_cast<int>(identifiers[idExpr->idListIndex]->type));
+		switch (identifiers[idExpr->idListIndex]->type) {
+			case IdentifierType::INT:
+				translatedCode += fmt::format("printf(\"%d\\n\", {});", identifiers[idExpr->idListIndex]->name);
+				break;
+			case IdentifierType::DOUBLE:
+				translatedCode += fmt::format("printf(\"%f\\n\", {});", identifiers[idExpr->idListIndex]->name);
+				break;
+			default:
+				fmt::printf("Cannot translate read statement: unknown operand type\n");
+		}
+	} else if (auto intExpr = std::dynamic_pointer_cast<IntLiteralExpression>(stmt->operand)) {
+		translatedCode += fmt::format("printf(\"%d\\n\", {});", intExpr->value);
+	} else if (auto doubleExpr = std::dynamic_pointer_cast<DoubleLiteralExpression>(stmt->operand)) {
+		translatedCode += fmt::format("printf(\"%d\\n\", {});", doubleExpr->value);
+	} else {
+		fmt::printf("Could'nt translate write statement\n");
+	}
+
+	return translatedCode;
 }
 
 }

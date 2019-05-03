@@ -55,6 +55,18 @@ struct NestedBlockStatement final : public Statement {
 	~NestedBlockStatement() override = default;
 };
 
+struct ReadStatement final : public Statement {
+	std::shared_ptr<Expression> operand;
+
+	~ReadStatement() override = default;
+};
+
+struct WriteStatement final : public Statement {
+	std::shared_ptr<Expression> operand;
+
+	~WriteStatement() override = default;
+};
+
 }
 
 #endif //BLAHCOMPILER_STATEMENT_HPP

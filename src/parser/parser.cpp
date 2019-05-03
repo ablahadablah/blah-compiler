@@ -4,6 +4,8 @@
 #include <string>
 #include <algorithm>
 
+#include "Identifier.hpp"
+
 namespace blahpiler {
 
 std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
@@ -108,6 +110,10 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 			return parseWhileStatement(parserContext);
 		case Tag::LBRACE:
 			return parseNestedBlockStatement(parserContext);
+		case Tag::READ:
+			return parseReadStatement(parserContext);
+		case Tag::WRITE:
+			return parseWriteStatement(parserContext);
 		default:
 			fmt::printf("blah blah blah default: %s\n", parserContext.wordIt->lexeme);
 			return nullptr;
@@ -177,7 +183,14 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 		fmt::printf("Couldn't parse val at line %d: expected a type\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	valDefinitionStmt->type = parserContext.wordIt->lexeme;
+	parserContext.identifiersList[valDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
+	auto& type = parserContext.wordIt->lexeme;
+
+	if (type == "int") {
+		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::INT;
+	} else if (type == "double") {
+		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+	}
 
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ASSIGN) {
@@ -229,7 +242,14 @@ std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& parserContext
 		fmt::printf("Couldn't parse var at line %d: expected a type\n", parserContext.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.identifiersList[varDefinitionStmt->idIndex]->type = parserContext.wordIt->lexeme;
+	parserContext.identifiersList[varDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
+	auto const& type = parserContext.wordIt->lexeme;
+
+	if (type == "int") {
+		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::INT;
+	} else if (type == "double") {
+		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+	}
 
 	parserContext.wordIt++;
 	if (parserContext.wordIt->tag != Tag::ASSIGN) {
@@ -324,6 +344,7 @@ std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noex
 
 	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
 		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
+			fmt::printf("found an id of type: %s\n", parserContext.identifiersList[i]->typeLexeme);
 			auto idExpr = std::make_shared<IdExpression>();
 			idExpr->idListIndex = i;
 
@@ -495,6 +516,28 @@ std::shared_ptr<Entity> parseNestedBlockStatement(ParserContext& parserContext) 
 		stmt->entities.push_back(parseEntity(parserContext));
 		parserContext.wordIt++;
 	}
+
+	return stmt;
+}
+
+std::shared_ptr<Entity> parseReadStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a read statement\n");
+
+	auto stmt = std::make_shared<ReadStatement>();
+	parserContext.wordIt++;
+
+	stmt->operand = parseExpression(parserContext);
+
+	return stmt;
+}
+
+std::shared_ptr<Entity> parseWriteStatement(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing a write statement\n");
+
+	auto stmt = std::make_shared<WriteStatement>();
+	parserContext.wordIt++;
+
+	stmt->operand = parseExpression(parserContext);
 
 	return stmt;
 }
