@@ -20,36 +20,6 @@ public:
 	std::string typeLexeme;
 	IdentifierType type;
 	bool isConst;
-
-	virtual ~Identifier() = default;
-};
-
-class IntIdentifier final : public Identifier {
-public:
-	int32_t value = 0;
-
-	~IntIdentifier() override = default;
-};
-
-class DoubleIdentifier final : public Identifier {
-public:
-	double value = 0;
-
-	~DoubleIdentifier() override = default;
-};
-
-class CharIdentifier final : public Identifier {
-public:
-	char value = 0;
-
-	~CharIdentifier() override = default;
-};
-
-class StringIdentifier final : public Identifier {
-public:
-	std::string value = "";
-
-	~StringIdentifier() override = default;
 };
 
 }
