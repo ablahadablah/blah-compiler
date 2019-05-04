@@ -128,164 +128,160 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 	std::vector<std::shared_ptr<Identifier>> identifiersList;
 	std::set<std::string> identifierNames;
 
-	auto parse = [&] () {
-		auto getch = [&] () {
-			if (inputBuffer.size() == peekIndex + 1) {
-				peek = std::nullopt;
-			} else {
-				peek = inputBuffer[++peekIndex];
-			}
-		};
-
-		peek = inputBuffer.front();
-
-		do {
-			if (peek == ' ' || peek == '\t') {
-				getch();
-				continue;
-			} else if (peek == '\n') {
-				lineNumber++;
-				posInLine = 0;
-				fmt::printf("found a new line %d! \n", lineNumber);
-				getch();
-				continue;
-			}
-
-			if (peek == '<') {
-				getch();
-
-				if (peek == '=') {
-					parsedWords.push_back({lineNumber, posInLine, "<="s, Tag::LE});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, "<", Tag::LT});
-				}
-
-				posInLine++;
-			} else if (peek == '>') {
-				getch();
-
-				if (peek == '=') {
-					parsedWords.push_back({lineNumber, posInLine, ">=", Tag::GE});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, ">", Tag::GT});
-				}
-
-				posInLine++;
-			} else if (peek == '=') {
-				getch();
-
-				if (peek == '=') {
-					parsedWords.push_back({lineNumber, posInLine, "==", Tag::EQ});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, "=", Tag::ASSIGN});
-				}
-
-				posInLine++;
-			} else if (peek == '&') {
-				getch();
-
-				if (peek == '&') {
-					parsedWords.push_back({lineNumber, posInLine, "&&", Tag::AND});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, "&", Tag::TOKEN});
-				}
-
-				posInLine++;
-			} else if (peek == '|') {
-				getch();
-
-				if (peek == '|') {
-					parsedWords.push_back({lineNumber, posInLine, "||", Tag::OR});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, "|", Tag::TOKEN});
-				}
-
-				posInLine++;
-			} else if (peek == '!') {
-				getch();
-
-				if (peek == '=') {
-					parsedWords.push_back({lineNumber, posInLine, "!=", Tag::NE});
-				} else {
-					parsedWords.push_back({lineNumber, posInLine, "!", Tag::NEG});
-				}
-			} else if (peek == ':') {
-				parsedWords.push_back({lineNumber, posInLine, ":", Tag::COLON});
-			} else if (peek == '+') {
-				parsedWords.push_back({lineNumber, posInLine, "+", Tag::PLUS});
-			} else if (peek == '-') {
-				parsedWords.push_back({lineNumber, posInLine, "-", Tag::MINUS});
-			} else if (peek == '*') {
-				parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
-			} else if (peek == '/') {
-				parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
-			} else if (peek == '(') {
-				parsedWords.push_back({lineNumber, posInLine, "(", Tag::LPARENTH});
-			} else if (peek == ')') {
-				parsedWords.push_back({lineNumber, posInLine, ")", Tag::RPARENTH});
-			} else if (peek == '{') {
-				parsedWords.push_back({lineNumber, posInLine, "{", Tag::LBRACE});
-			} else if (peek == '}') {
-				parsedWords.push_back({lineNumber, posInLine, "}", Tag::RBRACE});
-			} else if (peek == '%') {
-				parsedWords.push_back({lineNumber, posInLine, "%", Tag::MOD});
-			}
-
-			if (std::isdigit(static_cast<unsigned char>(*peek))) {
-				fmt::printf("trying to parse a symbol as a number %c at %d\n", inputBuffer[peekIndex], peekIndex);
-				auto [parsedNumber, bytesNum] = parseNumber(&inputBuffer[peekIndex]);
-
-				if (parsedNumber) {
-					parsedNumber->lineNumber = lineNumber;
-					parsedNumber->posInLine = posInLine;
-					fmt::printf("a parsed number: %s, line %d, pos %d\n", parsedNumber->lexeme,
-						lineNumber, posInLine);
-
-					parsedWords.push_back(*parsedNumber);
-				} else {
-					fmt::printf("Couldn't parse a number from line %d\n", lineNumber);
-				}
-
-				fmt::printf("bytes num: %d\n", bytesNum);
-				peekIndex += bytesNum;
-				posInLine += bytesNum;
-			}
-
-			if (std::isalpha(*peek)) {
-				auto [parsedWord, bytesNum] = parseWord(&inputBuffer[peekIndex]);
-
-				if (parsedWord == std::nullopt) {
-					fmt::printf("Something went wrong when parsing a word at: %d, %d", peekIndex, posInLine);
-				}
-
-				parsedWord->lineNumber = lineNumber;
-				parsedWord->posInLine = posInLine;
-				peekIndex += bytesNum;
-				posInLine += bytesNum;
-
-				if (parsedWord->tag == Tag::ID) {
-					auto identifier = handleIdentifier(*parsedWord);
-
-					if (identifier != nullptr) {
-						auto idNameIt = identifierNames.find(identifier->name);
-
-						if (idNameIt == identifierNames.end()) {
-							identifierNames.insert(identifier->name);
-							identifiersList.push_back(std::move(identifier));
-						}
-					}
-				}
-
-				parsedWords.push_back(*parsedWord);
-			}
-
-			getch();
-			posInLine++;
-			// end of the input stream, finish parsing
-		} while (peek != std::nullopt && peek != '\0');
+	auto getch = [&] () {
+		if (inputBuffer.size() == peekIndex + 1) {
+			peek = std::nullopt;
+		} else {
+			peek = inputBuffer[++peekIndex];
+		}
 	};
 
-	parse();
+	peek = inputBuffer.front();
+
+	do {
+		if (peek == ' ' || peek == '\t') {
+			getch();
+			continue;
+		} else if (peek == '\n') {
+			lineNumber++;
+			posInLine = 0;
+			fmt::printf("found a new line %d! \n", lineNumber);
+			getch();
+			continue;
+		}
+
+		if (peek == '<') {
+			getch();
+
+			if (peek == '=') {
+				parsedWords.push_back({lineNumber, posInLine, "<="s, Tag::LE});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "<", Tag::LT});
+			}
+
+			posInLine++;
+		} else if (peek == '>') {
+			getch();
+
+			if (peek == '=') {
+				parsedWords.push_back({lineNumber, posInLine, ">=", Tag::GE});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, ">", Tag::GT});
+			}
+
+			posInLine++;
+		} else if (peek == '=') {
+			getch();
+
+			if (peek == '=') {
+				parsedWords.push_back({lineNumber, posInLine, "==", Tag::EQ});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "=", Tag::ASSIGN});
+			}
+
+			posInLine++;
+		} else if (peek == '&') {
+			getch();
+
+			if (peek == '&') {
+				parsedWords.push_back({lineNumber, posInLine, "&&", Tag::AND});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "&", Tag::TOKEN});
+			}
+
+			posInLine++;
+		} else if (peek == '|') {
+			getch();
+
+			if (peek == '|') {
+				parsedWords.push_back({lineNumber, posInLine, "||", Tag::OR});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "|", Tag::TOKEN});
+			}
+
+			posInLine++;
+		} else if (peek == '!') {
+			getch();
+
+			if (peek == '=') {
+				parsedWords.push_back({lineNumber, posInLine, "!=", Tag::NE});
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "!", Tag::NEG});
+			}
+		} else if (peek == ':') {
+			parsedWords.push_back({lineNumber, posInLine, ":", Tag::COLON});
+		} else if (peek == '+') {
+			parsedWords.push_back({lineNumber, posInLine, "+", Tag::PLUS});
+		} else if (peek == '-') {
+			parsedWords.push_back({lineNumber, posInLine, "-", Tag::MINUS});
+		} else if (peek == '*') {
+			parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
+		} else if (peek == '/') {
+			parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
+		} else if (peek == '(') {
+			parsedWords.push_back({lineNumber, posInLine, "(", Tag::LPARENTH});
+		} else if (peek == ')') {
+			parsedWords.push_back({lineNumber, posInLine, ")", Tag::RPARENTH});
+		} else if (peek == '{') {
+			parsedWords.push_back({lineNumber, posInLine, "{", Tag::LBRACE});
+		} else if (peek == '}') {
+			parsedWords.push_back({lineNumber, posInLine, "}", Tag::RBRACE});
+		} else if (peek == '%') {
+			parsedWords.push_back({lineNumber, posInLine, "%", Tag::MOD});
+		}
+
+		if (std::isdigit(static_cast<unsigned char>(*peek))) {
+			fmt::printf("trying to parse a symbol as a number %c at %d\n", inputBuffer[peekIndex], peekIndex);
+			auto [parsedNumber, bytesNum] = parseNumber(&inputBuffer[peekIndex]);
+
+			if (parsedNumber) {
+				parsedNumber->lineNumber = lineNumber;
+				parsedNumber->posInLine = posInLine;
+				fmt::printf("a parsed number: %s, line %d, pos %d\n", parsedNumber->lexeme,
+				            lineNumber, posInLine);
+
+				parsedWords.push_back(*parsedNumber);
+			} else {
+				fmt::printf("Couldn't parse a number from line %d\n", lineNumber);
+			}
+
+			fmt::printf("bytes num: %d\n", bytesNum);
+			peekIndex += bytesNum;
+			posInLine += bytesNum;
+		}
+
+		if (std::isalpha(*peek)) {
+			auto [parsedWord, bytesNum] = parseWord(&inputBuffer[peekIndex]);
+
+			if (parsedWord == std::nullopt) {
+				fmt::printf("Something went wrong when parsing a word at: %d, %d", peekIndex, posInLine);
+			}
+
+			parsedWord->lineNumber = lineNumber;
+			parsedWord->posInLine = posInLine;
+			peekIndex += bytesNum;
+			posInLine += bytesNum;
+
+			if (parsedWord->tag == Tag::ID) {
+				auto identifier = handleIdentifier(*parsedWord);
+
+				if (identifier != nullptr) {
+					auto idNameIt = identifierNames.find(identifier->name);
+
+					if (idNameIt == identifierNames.end()) {
+						identifierNames.insert(identifier->name);
+						identifiersList.push_back(std::move(identifier));
+					}
+				}
+			}
+
+			parsedWords.push_back(*parsedWord);
+		}
+
+		getch();
+		posInLine++;
+		// end of the input stream, finish parsing
+	} while (peek != std::nullopt && peek != '\0');
 
 	fmt::printf("identifiers num: %d\n", identifiersList.size());
 
