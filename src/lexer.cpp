@@ -255,6 +255,10 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 
 			if (parsedWord == std::nullopt) {
 				fmt::printf("Something went wrong when parsing a word at: %d, %d", peekIndex, posInLine);
+
+				peekIndex += bytesNum;
+				posInLine += bytesNum;
+				continue;
 			}
 
 			parsedWord->lineNumber = lineNumber;
