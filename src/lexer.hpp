@@ -34,7 +34,6 @@ struct Token {
 	size_t posInLine;
 	std::string lexeme;
 	Tag tag;
-	std::optional<size_t> identifierIndex;
 };
 
 using KeywordTable = std::map<std::string, Token>;
