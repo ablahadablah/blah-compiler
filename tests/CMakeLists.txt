@@ -5,4 +5,4 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(blahCompilerTest src/main.cpp src/someTest.cpp src/lexerTest.cpp)
 
-target_link_libraries(blahCompilerTest fmt)
+target_link_libraries(blahCompilerTest fmt blahLib)

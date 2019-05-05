@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include "lexer.hpp"
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) {
+TEST_CASE("Lexer", "IntLiterals") {
 }
