@@ -12,21 +12,21 @@ int main() {
 						  "val anotherVal : int = someVal + 105 \n"
 						  "write anotherVal \n";
 
-	auto parsedWords = blahpiler::parseProgram(sourceCode);
+	auto tokensSeq = blahpiler::parseProgram(sourceCode);
 
-	for (auto const& word : parsedWords.first) {
+	for (auto const& word : tokensSeq.tokens) {
 		fmt::printf("parsed word %s from %d, %d, type %d\n", word.lexeme, word.lineNumber, word.posInLine,
 			static_cast<int>(word.tag));
 	}
 
-	for (auto const& id : parsedWords.second) {
-		fmt::printf("identifier: %s\n", id->name);
+	for (auto const& id : tokensSeq.idsTable) {
+		fmt::printf("identifier: %s\n", id.first);
 	}
 
-	auto [entities, identifiers] = parse(parsedWords.first, parsedWords.second);
-
-	auto translatedCode = blahpiler::translator::translate(entities, identifiers);
-
+	auto entitiesSeq = parse(tokensSeq);
+//
+	auto translatedCode = blahpiler::translator::translate(entitiesSeq);
+//
 	fmt::printf("translated code:\n %s\n", translatedCode);
 
 	return 0;

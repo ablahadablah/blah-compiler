@@ -51,11 +51,11 @@ std::optional<Token> getKeyword(std::string const& lexeme,
 	}
 }
 
-std::shared_ptr<Identifier> handleIdentifier(Token const& word) noexcept {
-	auto id = std::make_unique<Identifier>();
-	id->name = word.lexeme;
-
-	return id;
+void handleIdentifier(Token const& word, IdentifiersTable& idsTable) noexcept {
+	if (auto idIt = idsTable.find(word.lexeme); idIt == idsTable.end()) {
+		auto id = std::make_shared<Identifier>();
+		idsTable[word.lexeme] = id;
+	}
 }
 
 // TODO: write a test for the function
@@ -117,16 +117,18 @@ std::pair<std::optional<Token>, size_t> parseWord(std::string_view inputBuffer) 
 	return std::pair(Token{0, 0, lexeme, Tag::ID}, bufferInd);
 }
 
-std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
-	std::string const& inputData) noexcept {
+//std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
+//	std::string const& inputData) noexcept {
+TokensSeq parseProgram(std::string const& inputData) noexcept {
 	size_t lineNumber = 0;
 	size_t posInLine = 0;
 	std::optional<char> peek = std::nullopt;
 	size_t peekIndex = 0;
 	std::string inputBuffer = inputData;
 	std::vector<Token> parsedWords;
-	std::vector<std::shared_ptr<Identifier>> identifiersList;
-	std::set<std::string> identifierNames;
+	IdentifiersTable identifiersTable;
+
+	parsedWords.reserve(64);
 
 	auto getch = [&] () {
 		if (inputBuffer.size() == peekIndex + 1) {
@@ -267,16 +269,7 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 			posInLine += bytesNum;
 
 			if (parsedWord->tag == Tag::ID) {
-				auto identifier = handleIdentifier(*parsedWord);
-
-				if (identifier != nullptr) {
-					auto idNameIt = identifierNames.find(identifier->name);
-
-					if (idNameIt == identifierNames.end()) {
-						identifierNames.insert(identifier->name);
-						identifiersList.push_back(std::move(identifier));
-					}
-				}
+				handleIdentifier(*parsedWord, identifiersTable);
 			}
 
 			parsedWords.push_back(*parsedWord);
@@ -287,9 +280,8 @@ std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parsePro
 		// end of the input stream, finish parsing
 	} while (peek != std::nullopt && peek != '\0');
 
-	fmt::printf("identifiers num: %d\n", identifiersList.size());
-
-	return std::make_pair(parsedWords, std::move(identifiersList));
+//	return std::make_pair(parsedWords, std::move(identifiersList));
+	return TokensSeq{parsedWords, std::move(identifiersTable)};
 }
 
 }

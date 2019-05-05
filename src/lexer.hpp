@@ -21,6 +21,8 @@
 
 namespace blahpiler {
 
+using IdentifiersTable = std::map<std::string, std::shared_ptr<Identifier>>;
+
 enum class Tag {
 	ID = 468,
 	OR, AND, TRUE, FALSE, INT, DOUBLE, CHAR, WRONG,
@@ -36,6 +38,11 @@ struct Token {
 	Tag tag;
 };
 
+struct TokensSeq {
+	std::vector<Token> tokens;
+	std::map<std::string, std::shared_ptr<Identifier>> idsTable;
+};
+
 using KeywordTable = std::map<std::string, Token>;
 
 KeywordTable getKeywordTable() noexcept;
@@ -46,7 +53,10 @@ std::optional<Token> getKeyword(std::string const& lexeme,
 //std::optional<Token> parseNumber(char const* inputBuffer) noexcept;
 std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer) noexcept;
 
-std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
+//std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
+//	std::string const& inputData) noexcept;
+
+TokensSeq parseProgram(
 	std::string const& inputData) noexcept;
 
 }

@@ -61,9 +61,9 @@ public:
 	~BinaryExpression() = default;
 };
 
-class IdExpression final : public Expression {
-public:
+struct IdExpression final : public Expression {
 	size_t idListIndex = 0;
+	std::string name;
 
 	~IdExpression() override = default;
 };
@@ -71,6 +71,7 @@ public:
 class AssignmentExpression final : public Expression {
 public:
 	size_t lvalueIdIndex;
+	std::string lvalueName;
 	std::shared_ptr<Expression> exprToAssign;
 
 	~AssignmentExpression() override = default;
