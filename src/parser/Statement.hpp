@@ -26,8 +26,8 @@ public:
 	std::shared_ptr<Expression> assignExpression;
 };
 
-class VarDefinitionStatement : public Statement {
-public:
+struct VarDefinitionStatement final : public Statement {
+	std::string name;
 	size_t idIndex;
 	std::shared_ptr<Expression> assignExpression;
 };

@@ -8,15 +8,16 @@
 
 namespace blahpiler {
 
-std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
-                                                                                               std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+//std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Identifier>>> parse(std::vector<Token> const& words,
+//                                                                                               std::vector<std::shared_ptr<Identifier>>& identifiers) noexcept {
+EntitiesSeq parse(TokensSeq& tokensSeq) noexcept {
 	fmt::printf("parsing the program\n");
 
 	std::vector<std::shared_ptr<Entity>> entities;
 	ParserContext parserContext;
-	parserContext.wordIt = words.begin();
-	parserContext.endIt = words.end();
-	parserContext.identifiersList = std::move(identifiers);
+	parserContext.wordIt = tokensSeq.tokens.begin();
+	parserContext.endIt = tokensSeq.tokens.end();
+	parserContext.idsTable = std::move(tokensSeq.idsTable);
 
 	for (; parserContext.wordIt != parserContext.endIt; parserContext.wordIt += 1) {
 		entities.push_back(parseEntity(parserContext));
@@ -24,7 +25,7 @@ std::pair<std::vector<std::shared_ptr<Entity>>, std::vector<std::shared_ptr<Iden
 
 	fmt::printf("Entities num: %d\n", entities.size());
 
-	return std::make_pair(entities, parserContext.identifiersList);
+	return EntitiesSeq{entities, parserContext.idsTable};
 }
 
 std::shared_ptr<BinaryExpression> parseBinaryExpression(ParserContext& parserContext,
@@ -77,23 +78,6 @@ std::shared_ptr<Entity> parseEntity(ParserContext& parserContext) noexcept {
 	fmt::printf("Parsing an entity\n");
 
 	switch (parserContext.wordIt->tag) {
-		case Tag::OR:
-		case Tag::AND:
-		case Tag::ASSIGN:
-		case Tag::EQ:
-		case Tag::GE:
-		case Tag::GT:
-		case Tag::LE:
-		case Tag::LT:
-		case Tag::PLUS:
-		case Tag::MINUS:
-		case Tag::MUL:
-		case Tag::DIV:
-		case Tag::MOD:
-		case Tag::NE:
-			// need to somehow access the previous token
-//			return parseBinaryExpression(wordIt);
-			return nullptr;
 		case Tag::INT:
 			return parseLiteralExpression(parserContext);
 		case Tag::FUN:
@@ -155,54 +139,53 @@ std::shared_ptr<Entity> parseFunctionDefinitionStatement(ParserContext& parserCo
 	return nullptr;
 }
 
-std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext) noexcept {
+std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noexcept {
 	fmt::printf("parsing a val definition\n");
 	auto valDefinitionStmt = std::make_shared<ValDefinitionStatement>();
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::ID) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an ID\n", parserContext.wordIt->lineNumber);
+	if (parseCtx.nextToken().tag != Tag::ID) {
+		fmt::printf("Couldn't parse val definition at line %d: expected an ID\n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
-	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
-		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
-			valDefinitionStmt->idIndex = i;
-			fmt::printf("val definition statemt of an id num %d\n", i);
-			break;
-		}
-	}
-	valDefinitionStmt->name = parserContext.wordIt->lexeme;
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::COLON) {
-		fmt::printf("Couldn't parse val definition at line %d: expected a colon\n", parserContext.wordIt->lineNumber);
+	if (auto idIt = parseCtx.idsTable.find(parseCtx.getToken().lexeme); idIt != parseCtx.idsTable.end()) {
+		valDefinitionStmt->name = parseCtx.getToken().lexeme;
+	} else {
+		fmt::printf("The id %s was not found in ids table\n", parseCtx.getToken().lexeme);
+	}
+
+	valDefinitionStmt->name = parseCtx.wordIt->lexeme;
+
+	parseCtx.wordIt++;
+	if (parseCtx.wordIt->tag != Tag::COLON) {
+		fmt::printf("Couldn't parse val definition at line %d: expected a colon\n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::TYPE) {
-		fmt::printf("Couldn't parse val at line %d: expected a type\n", parserContext.wordIt->lineNumber);
+	parseCtx.wordIt++;
+	if (parseCtx.wordIt->tag != Tag::TYPE) {
+		fmt::printf("Couldn't parse val at line %d: expected a type\n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.identifiersList[valDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
-	auto& type = parserContext.wordIt->lexeme;
+
+	auto& type = parseCtx.wordIt->lexeme;
 
 	if (type == "int") {
-		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::INT;
+		parseCtx.idsTable[valDefinitionStmt->name]->type = IdentifierType::INT;
 	} else if (type == "double") {
-		parserContext.identifiersList[valDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+		parseCtx.idsTable[valDefinitionStmt->name]->type = IdentifierType::DOUBLE;
 	}
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::ASSIGN) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", parserContext.wordIt->lineNumber);
+	parseCtx.wordIt++;
+	if (parseCtx.wordIt->tag != Tag::ASSIGN) {
+		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	parserContext.wordIt++;
-	auto initExpression = parseExpression(parserContext);
+	parseCtx.wordIt++;
+	auto initExpression = parseExpression(parseCtx);
 
 	if (initExpression == nullptr) {
-		fmt::printf("Couldn't parse val definition at line %d: expected an init expression \n", parserContext.wordIt->lineNumber);
+		fmt::printf("Couldn't parse val definition at line %d: expected an init expression \n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
 
@@ -211,57 +194,51 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parserContext
 	return valDefinitionStmt;
 }
 
-std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& parserContext) noexcept {
+std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& ctx) noexcept {
 	fmt::printf("parsing a var definition\n");
 	auto varDefinitionStmt = std::make_shared<VarDefinitionStatement>();
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::ID) {
-		fmt::printf("Couldn't parse var definition at line %d: expected an ID\n", parserContext.wordIt->lineNumber);
+	ctx.wordIt++;
+	if (ctx.wordIt->tag != Tag::ID) {
+		fmt::printf("Couldn't parse var definition at line %d: expected an ID\n", ctx.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
-		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
-			varDefinitionStmt->idIndex = i;
-			fmt::printf("var definition statement of an id num %d\n", i);
-			break;
-		} else {
-			fmt::printf("Couldn't find an identifier: %s\n", parserContext.wordIt->lexeme);
-			return nullptr;
-		}
+	if (auto idIt = ctx.idsTable.find(ctx.getToken().lexeme); idIt != ctx.idsTable.end()) {
+		varDefinitionStmt->name = ctx.getToken().lexeme;
+	} else {
+		fmt::printf("The id %s was not found in ids table\n", ctx.getToken().lexeme);
 	}
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::COLON) {
-		fmt::printf("Couldn't parse var definition at line %d: expected a colon\n", parserContext.wordIt->lineNumber);
+	ctx.wordIt++;
+	if (ctx.wordIt->tag != Tag::COLON) {
+		fmt::printf("Couldn't parse var definition at line %d: expected a colon\n", ctx.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::TYPE) {
-		fmt::printf("Couldn't parse var at line %d: expected a type\n", parserContext.wordIt->lineNumber);
+	ctx.wordIt++;
+	if (ctx.wordIt->tag != Tag::TYPE) {
+		fmt::printf("Couldn't parse var at line %d: expected a type\n", ctx.wordIt->lineNumber);
 		return nullptr;
 	}
-	parserContext.identifiersList[varDefinitionStmt->idIndex]->typeLexeme = parserContext.wordIt->lexeme;
-	auto const& type = parserContext.wordIt->lexeme;
+	auto const& type = ctx.wordIt->lexeme;
 
 	if (type == "int") {
-		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::INT;
+		ctx.idsTable[varDefinitionStmt->name]->type = IdentifierType::INT;
 	} else if (type == "double") {
-		parserContext.identifiersList[varDefinitionStmt->idIndex]->type = IdentifierType::DOUBLE;
+		ctx.idsTable[varDefinitionStmt->name]->type = IdentifierType::DOUBLE;
 	}
 
-	parserContext.wordIt++;
-	if (parserContext.wordIt->tag != Tag::ASSIGN) {
-		fmt::printf("Couldn't parse var definition at line %d: expected an assignment \n", parserContext.wordIt->lineNumber);
+	ctx.wordIt++;
+	if (ctx.wordIt->tag != Tag::ASSIGN) {
+		fmt::printf("Couldn't parse var definition at line %d: expected an assignment \n", ctx.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	parserContext.wordIt++;
-	auto initExpression = parseExpression(parserContext);
+	ctx.wordIt++;
+	auto initExpression = parseExpression(ctx);
 
 	if (initExpression == nullptr) {
-		fmt::printf("Couldn't parse var definition at line %d: expected an init expression \n", parserContext.wordIt->lineNumber);
+		fmt::printf("Couldn't parse var definition at line %d: expected an init expression \n", ctx.wordIt->lineNumber);
 		return nullptr;
 	}
 
@@ -339,49 +316,44 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 	}
 }
 
-std::shared_ptr<Expression> parseIdExpression(ParserContext& parserContext) noexcept {
+std::shared_ptr<Expression> parseIdExpression(ParserContext& ctx) noexcept {
 	fmt::printf("parsing an id expression\n");
 
-	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
-		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
-			fmt::printf("found an id of type: %s\n", parserContext.identifiersList[i]->typeLexeme);
-			auto idExpr = std::make_shared<IdExpression>();
-			idExpr->idListIndex = i;
+	if (auto idIt = ctx.idsTable.find(ctx.getToken().lexeme); idIt != ctx.idsTable.end()) {
+		auto idExpr = std::make_shared<IdExpression>();
+		idExpr->name = ctx.getToken().lexeme;
 
-			return idExpr;
-		}
+		return idExpr;
 	}
 
-	fmt::printf("identifier is not defined: %s\n", parserContext.wordIt->lexeme);
+	fmt::printf("identifier is not defined: %s\n", ctx.wordIt->lexeme);
 
 	return nullptr;
 }
 
-std::shared_ptr<Expression> parseAssignmentExpression(ParserContext& parserContext) noexcept {
+std::shared_ptr<Expression> parseAssignmentExpression(ParserContext& ctx) noexcept {
 	fmt::printf("parsing an assignment expression\n");
 
 	auto assignExpr = std::make_shared<AssignmentExpression>();
 
-	for (size_t i = 0; i < parserContext.identifiersList.size(); i++) {
-		if (parserContext.identifiersList[i]->name == parserContext.wordIt->lexeme) {
-			assignExpr->lvalueIdIndex = i;
-			break;
-		}
+	if (auto idIt = ctx.idsTable.find(ctx.getToken().lexeme); idIt != ctx.idsTable.end()) {
+		assignExpr->lvalueName = idIt->first;
 	}
-	parserContext.wordIt++;
 
-	if (parserContext.wordIt->tag != Tag::ASSIGN) {
+	ctx.wordIt++;
+
+	if (ctx.wordIt->tag != Tag::ASSIGN) {
 		fmt::printf("Couldn't parse an assignment expression at %d, %d: expected an assignment \n",
-			parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+			ctx.wordIt->lineNumber, ctx.wordIt->posInLine);
 		return nullptr;
 	}
-	parserContext.wordIt++;
+	ctx.wordIt++;
 
-	auto parsedExpr = parseExpression(parserContext);
+	auto parsedExpr = parseExpression(ctx);
 
 	if (parsedExpr == nullptr) {
 		fmt::printf("Couldn't parse an assignment expression at %d, %d: expected an expression to assign \n",
-		            parserContext.wordIt->lineNumber, parserContext.wordIt->posInLine);
+		            ctx.wordIt->lineNumber, ctx.wordIt->posInLine);
 	}
 
 	assignExpr->exprToAssign = parsedExpr;
