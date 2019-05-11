@@ -138,6 +138,20 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 		}
 	};
 
+	auto singleLineComment = [&] () {
+		do {
+			getch();
+		} while (!(peek == '\n' || peek == std::nullopt));
+	};
+	auto multiLineComment = [&] () {
+		char prev = 0;
+
+		do {
+			prev = *peek;
+			getch();
+		} while (!(prev == '*' && peek == '/'));
+	};
+
 	peek = inputBuffer.front();
 
 	do {
@@ -219,7 +233,15 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 		} else if (peek == '*') {
 			parsedWords.push_back({lineNumber, posInLine, "*", Tag::MUL});
 		} else if (peek == '/') {
-			parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
+			getch();
+
+			if (peek == '/') {
+				singleLineComment();
+			} else if (peek == '*') {
+				multiLineComment();
+			} else {
+				parsedWords.push_back({lineNumber, posInLine, "/", Tag::DIV});
+			}
 		} else if (peek == '(') {
 			parsedWords.push_back({lineNumber, posInLine, "(", Tag::LPARENTH});
 		} else if (peek == ')') {
