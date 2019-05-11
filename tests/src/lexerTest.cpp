@@ -2,6 +2,8 @@
 
 #include "lexer.hpp"
 
+using namespace blahpiler;
+
 TEST_CASE("Lexer", "IntLiterals") {
 	SECTION("IntLiteral") {
 		auto tokensSeq = blahpiler::parseProgram("123");
@@ -17,6 +19,8 @@ TEST_CASE("Lexer", "IntLiterals") {
 		REQUIRE(tokensSeq.tokens.size() == 1);
 		REQUIRE(tokensSeq.tokens.front().tag == blahpiler::Tag::ID);
 		REQUIRE(tokensSeq.tokens.front().lexeme == "blah");
+
+		REQUIRE(blahpiler::parseProgram("blah123").tokens.size() == 1);
 	}
 
 	SECTION("binaryOperators") {
@@ -44,6 +48,9 @@ TEST_CASE("Lexer", "IntLiterals") {
 		REQUIRE(blahpiler::parseProgram("}").tokens.front().tag == blahpiler::Tag::RBRACE);
 		REQUIRE(blahpiler::parseProgram("(").tokens.front().tag == blahpiler::Tag::LPARENTH);
 		REQUIRE(blahpiler::parseProgram(")").tokens.front().tag == blahpiler::Tag::RPARENTH);
+
+		REQUIRE(blahpiler::parseProgram("[").tokens.front().tag == blahpiler::Tag::LBRACKET);
+		REQUIRE(blahpiler::parseProgram("]").tokens.front().tag == blahpiler::Tag::RBRACKET);
 	}
 
 	SECTION("keywords") {
@@ -71,5 +78,22 @@ TEST_CASE("Lexer", "IntLiterals") {
 Second line
 Third line)";
 		REQUIRE(blahpiler::parseProgram(raw).tokens.size() == 4);
+	}
+
+	SECTION("arrays") {
+		using namespace blahpiler;
+		std::vector<blahpiler::Token> arr{
+			Token{0, 0, "arr", Tag::ID},
+			Token{0, 3, "[", Tag::LBRACKET},
+			Token{0, 4, "ind", Tag::ID},
+			Token{0, 8, "+", Tag::PLUS},
+			Token{0, 10, "1", Tag::INT},
+			Token{0, 11, "]", Tag::RBRACKET}};
+
+		REQUIRE(blahpiler::parseProgram("arr[]").tokens.size() == 3);
+		REQUIRE(blahpiler::parseProgram("arr[3]").tokens.size() == 4);
+		REQUIRE(blahpiler::parseProgram("arr[ind]").tokens.size() == 4);
+		REQUIRE(blahpiler::parseProgram("arr[ind + 1]").tokens.size() == 6);
+		REQUIRE_THAT(blahpiler::parseProgram("arr[ind + 1]").tokens, Catch::Matchers::Equals(arr));
 	}
 }

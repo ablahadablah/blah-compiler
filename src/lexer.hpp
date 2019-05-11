@@ -28,7 +28,7 @@ enum class Tag {
 	OR, AND, TRUE, FALSE, INT, DOUBLE, CHAR, WRONG,
 	GT, LT, GE, LE, EQ, NE, ASSIGN, TOKEN, DO, IF, THEN, ELSE, END, WHILE,
 	LBRACE, RBRACE, LPARENTH, RPARENTH, FUN, COLON, VAL, VAR,
-	TYPE, PLUS, MINUS, DIV, MUL, MOD, NEG, READ, WRITE
+	TYPE, PLUS, MINUS, DIV, MUL, MOD, NEG, READ, WRITE, LBRACKET, RBRACKET
 };
 
 struct Token {
@@ -36,6 +36,17 @@ struct Token {
 	size_t posInLine;
 	std::string lexeme;
 	Tag tag;
+
+	bool operator==(Token const& another) const {
+		return lineNumber == another.lineNumber
+			&& posInLine == another.posInLine
+			&& lexeme == another.lexeme
+			&& tag == another.tag;
+	}
+
+	bool operator!=(Token const& another) const {
+		return !(*this == another);
+	}
 };
 
 struct TokensSeq {
