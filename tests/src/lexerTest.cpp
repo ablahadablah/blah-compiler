@@ -63,4 +63,13 @@ TEST_CASE("Lexer", "IntLiterals") {
 		REQUIRE(blahpiler::parseProgram("read").tokens.front().tag == blahpiler::Tag::READ);
 		REQUIRE(blahpiler::parseProgram("write").tokens.front().tag == blahpiler::Tag::WRITE);
 	}
+
+	SECTION("comments") {
+		REQUIRE(blahpiler::parseProgram("//").tokens.empty());
+		REQUIRE(blahpiler::parseProgram("/**/").tokens.empty());
+		std::string raw = R"(//First line
+Second line
+Third line)";
+		REQUIRE(blahpiler::parseProgram(raw).tokens.size() == 4);
+	}
 }
