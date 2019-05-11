@@ -4,7 +4,7 @@
 
 using namespace blahpiler;
 
-TEST_CASE("Lexer", "IntLiterals") {
+TEST_CASE("Lexer", "[IntLiterals]") {
 	SECTION("IntLiteral") {
 		auto tokensSeq = blahpiler::parseProgram("123");
 
@@ -21,6 +21,7 @@ TEST_CASE("Lexer", "IntLiterals") {
 		REQUIRE(tokensSeq.tokens.front().lexeme == "blah");
 
 		REQUIRE(blahpiler::parseProgram("blah123").tokens.size() == 1);
+		REQUIRE(blahpiler::parseProgram("blah:").tokens.size() == 2);
 	}
 
 	SECTION("binaryOperators") {
@@ -95,5 +96,6 @@ Third line)";
 		REQUIRE(blahpiler::parseProgram("arr[ind]").tokens.size() == 4);
 		REQUIRE(blahpiler::parseProgram("arr[ind + 1]").tokens.size() == 6);
 		REQUIRE_THAT(blahpiler::parseProgram("arr[ind + 1]").tokens, Catch::Matchers::Equals(arr));
+		REQUIRE(blahpiler::parseProgram("val arr: int[1] = {1}").tokens.size() == 11);
 	}
 }

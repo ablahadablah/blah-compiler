@@ -50,7 +50,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto const sourceCode = readSourceFile(argv[1]);
-
 	auto tokensSeq = blahpiler::parseProgram(sourceCode);
 
 	for (auto const& word : tokensSeq.tokens) {
