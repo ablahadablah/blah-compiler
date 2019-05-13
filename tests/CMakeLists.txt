@@ -4,6 +4,6 @@ project(blahCompilerTest)
 set(CMAKE_CXX_STANDARD 20)
 
 
-add_executable(blahCompilerTest src/main.cpp src/someTest.cpp src/lexerTest.cpp)
+add_executable(blahCompilerTest src/main.cpp src/someTest.cpp src/lexerTest.cpp src/parserTest.cpp)
 
 target_link_libraries(blahCompilerTest fmt blahLib fmt)
