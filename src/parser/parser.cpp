@@ -167,7 +167,7 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noe
 		return nullptr;
 	}
 
-	auto& type = parseCtx.wordIt->lexeme;
+	auto const& type = parseCtx.wordIt->lexeme;
 
 	if (type == "int") {
 		parseCtx.idsTable[valDefinitionStmt->name]->type = IdentifierType::INT;
@@ -176,6 +176,33 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noe
 	}
 
 	parseCtx.wordIt++;
+
+	if (parseCtx.getToken().tag == Tag::LBRACKET) {
+		parseCtx.idsTable[valDefinitionStmt->name]->arrayType = true;
+		parseCtx.nextToken();
+		auto const& arrSizeExpr = parseExpression(parseCtx);
+
+		if (arrSizeExpr == nullptr) {
+			fmt::printf("Couldn't parse val definition at line %d: expected array type expr \n",
+				parseCtx.wordIt->lineNumber);
+			return nullptr;
+		}
+
+		auto const arrSizeLiteral = parseLiteralExpression(parseCtx);
+
+		if (auto const arrSizeNum = std::dynamic_pointer_cast<IntLiteralExpression>(arrSizeLiteral)) {
+			parseCtx.idsTable[valDefinitionStmt->name]->arraySize = arrSizeNum->value;
+		} else {
+			fmt::printf("Couldn't parse val definition at line %d: expected int literal array size \n",
+			            parseCtx.wordIt->lineNumber);
+		}
+
+		if (parseCtx.nextToken().tag != Tag::RBRACKET) {
+			fmt::printf("Couldn't parse val definition at line %d: expected ] \n",
+			            parseCtx.wordIt->lineNumber);
+		}
+	}
+
 	if (parseCtx.wordIt->tag != Tag::ASSIGN) {
 		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", parseCtx.wordIt->lineNumber);
 		return nullptr;

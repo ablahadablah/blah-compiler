@@ -58,8 +58,7 @@ using KeywordTable = std::map<std::string, Token>;
 
 KeywordTable getKeywordTable() noexcept;
 
-std::optional<Token> getKeyword(std::string const& lexeme,
-	KeywordTable const& keywordTable) noexcept;
+std::optional<Token> getKeyword(std::string const& lexeme,KeywordTable const& keywordTable) noexcept;
 
 //std::optional<Token> parseNumber(char const* inputBuffer) noexcept;
 std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer) noexcept;
@@ -67,8 +66,7 @@ std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer
 //std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
 //	std::string const& inputData) noexcept;
 
-TokensSeq parseProgram(
-	std::string const& inputData) noexcept;
+TokensSeq parseProgram(std::string const& inputData) noexcept;
 
 }
 
