@@ -135,6 +135,11 @@ std::string translateExpression(Expression* expr, EntitiesSeq& identifiers) noex
 		}
 
 		translatedCode[translatedCode.size() - 1] = '}';
+	} else if (auto arrSubscriptExpr = dynamic_cast<ArraySubscriptExpression*>(expr)) {
+		fmt::printf("found an array subscript expression\n");
+		translatedCode += arrSubscriptExpr->idExpr->name + "[";
+		translatedCode += translateExpression(arrSubscriptExpr->indexExpr.get(), identifiers);
+		translatedCode += "]";
 	} else {
 		fmt::printf("couldn't translate an expression\n");
 	}
@@ -190,7 +195,8 @@ std::string translateAssignmentExpression(AssignmentExpression const* expr,
 		return "";
 	}
 
-	translatedCode += identifiers.idsTable[expr->lvalueName]->name;
+//	translatedCode += identifiers.idsTable[expr->lvalueName]->name;
+	translatedCode += expr->lvalueName;
 	translatedCode += " = ";
 	translatedCode += translateExpression(expr->exprToAssign.get(), identifiers);
 	translatedCode += "; \n";
