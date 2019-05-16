@@ -68,6 +68,10 @@ std::string translateValDefinitionStmt(ValDefinitionStatement const& valDefiniti
 
 	translatedCode += valDefinitionStmt.name;
 
+	if (identifiers.idsTable[valDefinitionStmt.name]->arrayType) {
+		translatedCode += fmt::format("[{}]", identifiers.idsTable[valDefinitionStmt.name]->arraySize);
+	}
+
 	if (valDefinitionStmt.assignExpression != nullptr) {
 		translatedCode += " = ";
 
@@ -121,6 +125,16 @@ std::string translateExpression(Expression* expr, EntitiesSeq& identifiers) noex
 	} else if (auto intExpr = dynamic_cast<IntLiteralExpression*>(expr)) {
 		fmt::printf("found an int literal expression\n");
 		translatedCode += std::to_string(intExpr->value);
+	} else if (auto arrInitExpr = dynamic_cast<ArrayInitExpression*>(expr)) {
+		fmt::printf("found an array init expression\n");
+		translatedCode += "{";
+
+		for (auto const& literal : arrInitExpr->literalExprs) {
+			translatedCode += translateExpression(literal.get(), identifiers);
+			translatedCode += ",";
+		}
+
+		translatedCode[translatedCode.size() - 1] = '}';
 	} else {
 		fmt::printf("couldn't translate an expression\n");
 	}
@@ -262,18 +276,18 @@ std::string translateWriteStatement(WriteStatement const* stmt,
 			static_cast<int>(identifiers.idsTable[idExpr->name]->type));
 		switch (identifiers.idsTable[idExpr->name]->type) {
 			case IdentifierType::INT:
-				translatedCode += fmt::format("printf(\"%d\\n\", {});", idExpr->name);
+				translatedCode += fmt::format("printf(\"%d\\n\", {});\n", idExpr->name);
 				break;
 			case IdentifierType::DOUBLE:
-				translatedCode += fmt::format("printf(\"%f\\n\", {});", idExpr->name);
+				translatedCode += fmt::format("printf(\"%f\\n\", {});\n", idExpr->name);
 				break;
 			default:
 				fmt::printf("Cannot translate read statement: unknown operand type\n");
 		}
 	} else if (auto intExpr = std::dynamic_pointer_cast<IntLiteralExpression>(stmt->operand)) {
-		translatedCode += fmt::format("printf(\"%d\\n\", {});", intExpr->value);
+		translatedCode += fmt::format("printf(\"%d\\n\", {});\n", intExpr->value);
 	} else if (auto doubleExpr = std::dynamic_pointer_cast<DoubleLiteralExpression>(stmt->operand)) {
-		translatedCode += fmt::format("printf(\"%d\\n\", {});", doubleExpr->value);
+		translatedCode += fmt::format("printf(\"%d\\n\", {});\n", doubleExpr->value);
 	} else {
 		fmt::printf("Could'nt translate write statement\n");
 	}
