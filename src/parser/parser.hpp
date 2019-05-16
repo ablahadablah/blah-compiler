@@ -69,6 +69,8 @@ std::shared_ptr<Entity> parseReadStatement(ParserContext& parserContext) noexcep
 
 std::shared_ptr<Entity> parseWriteStatement(ParserContext& parserContext) noexcept;
 
+std::shared_ptr<Expression> parseArrayInitExpr(ParserContext& parserContext) noexcept;
+
 }
 
 
