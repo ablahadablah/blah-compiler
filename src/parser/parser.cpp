@@ -154,20 +154,17 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noe
 		fmt::printf("The id %s was not found in ids table\n", parseCtx.getToken().lexeme);
 	}
 
-	valDefinitionStmt->name = parseCtx.wordIt->lexeme;
-
-	parseCtx.wordIt++;
-	if (parseCtx.wordIt->tag != Tag::COLON) {
+	if (parseCtx.nextToken().tag != Tag::COLON) {
 		fmt::printf("Couldn't parse val definition at line %d: expected a colon\n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
-	parseCtx.wordIt++;
-	if (parseCtx.wordIt->tag != Tag::TYPE) {
+
+	if (parseCtx.nextToken().tag != Tag::TYPE) {
 		fmt::printf("Couldn't parse val at line %d: expected a type\n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	auto& type = parseCtx.wordIt->lexeme;
+	auto const& type = parseCtx.wordIt->lexeme;
 
 	if (type == "int") {
 		parseCtx.idsTable[valDefinitionStmt->name]->type = IdentifierType::INT;
@@ -176,12 +173,40 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noe
 	}
 
 	parseCtx.wordIt++;
+
+	if (parseCtx.getToken().tag == Tag::LBRACKET) {
+		parseCtx.idsTable[valDefinitionStmt->name]->arrayType = true;
+		parseCtx.nextToken();
+		auto const& arrSizeExpr = parseExpression(parseCtx);
+
+		if (arrSizeExpr == nullptr) {
+			fmt::printf("Couldn't parse val definition at line %d: expected array type expr \n",
+				parseCtx.wordIt->lineNumber);
+			return nullptr;
+		}
+
+		auto const arrSizeLiteral = parseLiteralExpression(parseCtx);
+
+		if (auto const arrSizeNum = std::dynamic_pointer_cast<IntLiteralExpression>(arrSizeLiteral)) {
+			parseCtx.idsTable[valDefinitionStmt->name]->arraySize = arrSizeNum->value;
+		} else {
+			fmt::printf("Couldn't parse val definition at line %d: expected int literal array size \n",
+			            parseCtx.wordIt->lineNumber);
+		}
+
+		if (parseCtx.nextToken().tag != Tag::RBRACKET) {
+			fmt::printf("Couldn't parse val definition at line %d: expected ] \n",
+			            parseCtx.wordIt->lineNumber);
+		}
+		parseCtx.nextToken();
+	}
+
 	if (parseCtx.wordIt->tag != Tag::ASSIGN) {
 		fmt::printf("Couldn't parse val definition at line %d: expected an assignment \n", parseCtx.wordIt->lineNumber);
 		return nullptr;
 	}
 
-	parseCtx.wordIt++;
+	parseCtx.nextToken();
 	auto initExpression = parseExpression(parseCtx);
 
 	if (initExpression == nullptr) {
@@ -189,7 +214,7 @@ std::shared_ptr<Entity> parseValDefinitionStatement(ParserContext& parseCtx) noe
 		return nullptr;
 	}
 
-	valDefinitionStmt->assignExpression = std::move(initExpression);
+	valDefinitionStmt->assignExpression = initExpression;
 
 	return valDefinitionStmt;
 }
@@ -250,8 +275,8 @@ std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& ctx) noexcept
 std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing an expression\n");
 
-	auto const checkForBinaryExpr = [] (WordIt& wordIt) -> bool {
-		switch (wordIt->tag) {
+	auto const checkForBinaryExpr = [] (Tag const& tag) -> bool {
+		switch (tag) {
 			case Tag::OR:
 			case Tag::AND:
 			case Tag::ASSIGN:
@@ -295,7 +320,7 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		case Tag::INT:
 			expr = std::move(parseLiteralExpression(parserContext));
 
-			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+			if (auto tmpIt = (parserContext.wordIt + 1)->tag; checkForBinaryExpr(tmpIt)) {
 				parserContext.wordIt++;
 				return parseBinaryExpression(parserContext, std::move(expr));
 			} else {
@@ -304,12 +329,14 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		case Tag::ID:
 			expr = std::move(parseIdExpression(parserContext));
 
-			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+			if (checkForBinaryExpr((parserContext.wordIt + 1)->tag)) {
 				parserContext.wordIt++;
 				return parseBinaryExpression(parserContext, std::move(expr));
 			} else {
 				return expr;
 			}
+		case Tag::LBRACE:
+			return parseArrayInitExpr(parserContext);
 		default:
 			fmt::printf("Couldn't parse an expression at line %d: wrong tag\n", parserContext.wordIt->lineNumber);
 			return nullptr;
@@ -322,6 +349,30 @@ std::shared_ptr<Expression> parseIdExpression(ParserContext& ctx) noexcept {
 	if (auto idIt = ctx.idsTable.find(ctx.getToken().lexeme); idIt != ctx.idsTable.end()) {
 		auto idExpr = std::make_shared<IdExpression>();
 		idExpr->name = ctx.getToken().lexeme;
+		auto const nextTag = (ctx.wordIt + 1)->tag;
+
+		if (nextTag == Tag::LBRACKET) {
+			fmt::printf("found an array subscript expr\n");
+			auto subscriptExpr = std::make_shared<ArraySubscriptExpression>();
+			subscriptExpr->idExpr = idExpr;
+
+			ctx.wordIt += 2; // go to the token after the bracket one
+			auto indexExpr = parseExpression(ctx);
+
+			if (indexExpr == nullptr) {
+				fmt::printf("Error parsing an id expr, wrong index expression: %s\n", ctx.wordIt->lexeme);
+				return nullptr;
+			}
+
+			subscriptExpr->indexExpr = indexExpr;
+
+			if (ctx.nextToken().tag != Tag::RBRACKET) {
+				fmt::printf("Error parsing an id expr: expected ]\n");
+				return nullptr;
+			}
+
+			return subscriptExpr;
+		}
 
 		return idExpr;
 	}
@@ -512,6 +563,20 @@ std::shared_ptr<Entity> parseWriteStatement(ParserContext& parserContext) noexce
 	stmt->operand = parseExpression(parserContext);
 
 	return stmt;
+}
+
+std::shared_ptr<Expression> parseArrayInitExpr(ParserContext& parserContext) noexcept {
+	fmt::printf("parsing an array init expression\n");
+
+	auto expr = std::make_shared<ArrayInitExpression>();
+	parserContext.wordIt++;
+
+	while (parserContext.wordIt->tag != Tag::RBRACE) {
+		expr->literalExprs.push_back(parseExpression(parserContext));
+		parserContext.wordIt++;
+	}
+
+	return expr;
 }
 
 }

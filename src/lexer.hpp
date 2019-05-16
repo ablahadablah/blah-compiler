@@ -28,7 +28,7 @@ enum class Tag {
 	OR, AND, TRUE, FALSE, INT, DOUBLE, CHAR, WRONG,
 	GT, LT, GE, LE, EQ, NE, ASSIGN, TOKEN, DO, IF, THEN, ELSE, END, WHILE,
 	LBRACE, RBRACE, LPARENTH, RPARENTH, FUN, COLON, VAL, VAR,
-	TYPE, PLUS, MINUS, DIV, MUL, MOD, NEG, READ, WRITE
+	TYPE, PLUS, MINUS, DIV, MUL, MOD, NEG, READ, WRITE, LBRACKET, RBRACKET
 };
 
 struct Token {
@@ -36,6 +36,17 @@ struct Token {
 	size_t posInLine;
 	std::string lexeme;
 	Tag tag;
+
+	bool operator==(Token const& another) const {
+		return lineNumber == another.lineNumber
+			&& posInLine == another.posInLine
+			&& lexeme == another.lexeme
+			&& tag == another.tag;
+	}
+
+	bool operator!=(Token const& another) const {
+		return !(*this == another);
+	}
 };
 
 struct TokensSeq {
@@ -47,8 +58,7 @@ using KeywordTable = std::map<std::string, Token>;
 
 KeywordTable getKeywordTable() noexcept;
 
-std::optional<Token> getKeyword(std::string const& lexeme,
-	KeywordTable const& keywordTable) noexcept;
+std::optional<Token> getKeyword(std::string const& lexeme,KeywordTable const& keywordTable) noexcept;
 
 //std::optional<Token> parseNumber(char const* inputBuffer) noexcept;
 std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer) noexcept;
@@ -56,8 +66,7 @@ std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer
 //std::pair<std::vector<Token>, std::vector<std::shared_ptr<Identifier>>> parseProgram(
 //	std::string const& inputData) noexcept;
 
-TokensSeq parseProgram(
-	std::string const& inputData) noexcept;
+TokensSeq parseProgram(std::string const& inputData) noexcept;
 
 }
 

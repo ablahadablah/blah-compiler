@@ -77,23 +77,23 @@ std::pair<std::optional<Token>, size_t> parseNumber(std::string_view inputBuffer
 
 	if (symbol == '.') {
 		// parse as a double
-	} else if (symbol == ' ' || symbol == '\n' || symbol == '\0') {
+	} else if (!std::isdigit(symbol)) {
 		// return an int
 		parsedNumber = Token();
 		parsedNumber->tag = Tag::INT;
 		parsedNumber->lexeme = lexeme;
 	}
 	// binary, hex, octal variations...
-	else {
-		// if found a symbol that's not a space, new line, b, x, then just skip it.
-		do {
-			lexeme += inputBuffer[bufferInd];
-		} while (inputBuffer[++bufferInd] != ' ' && bufferInd < inputBuffer.size());
-
-		parsedNumber = Token();
-		parsedNumber->tag = Tag::WRONG;
-		parsedNumber->lexeme = lexeme;
-	}
+//	else {
+//		// if found a symbol that's not a space, new line, b, x, then just skip it.
+//		do {
+//			lexeme += inputBuffer[bufferInd];
+//		} while (inputBuffer[++bufferInd] != ' ' && bufferInd < inputBuffer.size());
+//
+//		parsedNumber = Token();
+//		parsedNumber->tag = Tag::WRONG;
+//		parsedNumber->lexeme = lexeme;
+//	}
 
 	return std::pair(parsedNumber, bufferInd);
 }
@@ -104,7 +104,10 @@ std::pair<std::optional<Token>, size_t> parseWord(std::string_view inputBuffer) 
 
 	do {
 		lexeme += inputBuffer[bufferInd];
-	} while (!std::isspace(inputBuffer[++bufferInd]) && bufferInd < inputBuffer.size());
+		++bufferInd;
+	} while (!std::isspace(inputBuffer[bufferInd])
+			&& (std::isalpha(inputBuffer[bufferInd]) || std::isdigit(inputBuffer[bufferInd]))
+			&& bufferInd < inputBuffer.size());
 
 	// check if the parsed word is a keyword
 	auto const keywordTable = getKeywordTable();
@@ -137,6 +140,10 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 			peek = inputBuffer[++peekIndex];
 		}
 	};
+	auto updatePos = [&] (int64_t offset) {
+		peekIndex += offset;
+		posInLine += offset;
+	};
 
 	auto singleLineComment = [&] () {
 		do {
@@ -157,6 +164,7 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 	do {
 		if (peek == ' ' || peek == '\t') {
 			getch();
+			posInLine ++;
 			continue;
 		} else if (peek == '\n') {
 			lineNumber++;
@@ -252,6 +260,10 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 			parsedWords.push_back({lineNumber, posInLine, "}", Tag::RBRACE});
 		} else if (peek == '%') {
 			parsedWords.push_back({lineNumber, posInLine, "%", Tag::MOD});
+		} else if (peek == '[') {
+			parsedWords.push_back({lineNumber, posInLine, "[", Tag::LBRACKET});
+		} else if (peek == ']') {
+			parsedWords.push_back({lineNumber, posInLine, "]", Tag::RBRACKET});
 		}
 
 		if (std::isdigit(static_cast<unsigned char>(*peek))) {
@@ -261,6 +273,7 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 			if (parsedNumber) {
 				parsedNumber->lineNumber = lineNumber;
 				parsedNumber->posInLine = posInLine;
+//				updatePos(bytesNum - 1);
 				fmt::printf("a parsed number: %s, line %d, pos %d\n", parsedNumber->lexeme,
 				            lineNumber, posInLine);
 
@@ -270,8 +283,9 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 			}
 
 			fmt::printf("bytes num: %d\n", bytesNum);
-			peekIndex += bytesNum;
-			posInLine += bytesNum;
+//			peekIndex += bytesNum;
+//			posInLine += bytesNum;
+			updatePos(bytesNum - 1);
 		}
 
 		if (std::isalpha(*peek)) {
@@ -280,15 +294,17 @@ TokensSeq parseProgram(std::string const& inputData) noexcept {
 			if (parsedWord == std::nullopt) {
 				fmt::printf("Something went wrong when parsing a word at: %d, %d", peekIndex, posInLine);
 
-				peekIndex += bytesNum;
-				posInLine += bytesNum;
+				updatePos(bytesNum - 1);
+//				peekIndex += bytesNum;
+//				posInLine += bytesNum;
 				continue;
 			}
 
 			parsedWord->lineNumber = lineNumber;
 			parsedWord->posInLine = posInLine;
-			peekIndex += bytesNum;
-			posInLine += bytesNum;
+			updatePos(bytesNum - 1);
+//			peekIndex += bytesNum;
+//			posInLine += bytesNum;
 
 			if (parsedWord->tag == Tag::ID) {
 				handleIdentifier(*parsedWord, identifiersTable);

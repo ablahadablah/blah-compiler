@@ -20,6 +20,8 @@ public:
 	std::string typeLexeme;
 	IdentifierType type;
 	bool isConst;
+	bool arrayType = false;
+	int64_t arraySize = 0;
 };
 
 }

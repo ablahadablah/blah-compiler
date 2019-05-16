@@ -58,7 +58,7 @@ public:
 	std::shared_ptr<Expression> rhs;
 	Tag operatorTag;
 
-	~BinaryExpression() = default;
+	~BinaryExpression() override = default;
 };
 
 struct IdExpression final : public Expression {
@@ -75,6 +75,19 @@ public:
 	std::shared_ptr<Expression> exprToAssign;
 
 	~AssignmentExpression() override = default;
+};
+
+struct ArrayInitExpression final : public Expression {
+	std::vector<std::shared_ptr<Expression>> literalExprs;
+
+	~ArrayInitExpression() override = default;
+};
+
+struct ArraySubscriptExpression final : public Expression {
+	std::shared_ptr<IdExpression> idExpr;
+	std::shared_ptr<Expression> indexExpr;
+
+	~ArraySubscriptExpression() override = default;
 };
 
 }
