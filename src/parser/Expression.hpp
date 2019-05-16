@@ -83,6 +83,13 @@ struct ArrayInitExpression final : public Expression {
 	~ArrayInitExpression() override = default;
 };
 
+struct ArraySubscriptExpression final : public Expression {
+	std::shared_ptr<IdExpression> idExpr;
+	std::shared_ptr<Expression> indexExpr;
+
+	~ArraySubscriptExpression() override = default;
+};
+
 }
 
 

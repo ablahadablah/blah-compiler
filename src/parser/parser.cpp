@@ -275,8 +275,8 @@ std::shared_ptr<Entity> parseVarDefinitionStatement(ParserContext& ctx) noexcept
 std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexcept {
 	fmt::printf("parsing an expression\n");
 
-	auto const checkForBinaryExpr = [] (WordIt& wordIt) -> bool {
-		switch (wordIt->tag) {
+	auto const checkForBinaryExpr = [] (Tag const& tag) -> bool {
+		switch (tag) {
 			case Tag::OR:
 			case Tag::AND:
 			case Tag::ASSIGN:
@@ -320,7 +320,7 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		case Tag::INT:
 			expr = std::move(parseLiteralExpression(parserContext));
 
-			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+			if (auto tmpIt = (parserContext.wordIt + 1)->tag; checkForBinaryExpr(tmpIt)) {
 				parserContext.wordIt++;
 				return parseBinaryExpression(parserContext, std::move(expr));
 			} else {
@@ -329,7 +329,7 @@ std::shared_ptr<Expression> parseExpression(ParserContext& parserContext) noexce
 		case Tag::ID:
 			expr = std::move(parseIdExpression(parserContext));
 
-			if (auto tmpIt = parserContext.wordIt + 1; checkForBinaryExpr(tmpIt)) {
+			if (checkForBinaryExpr((parserContext.wordIt + 1)->tag)) {
 				parserContext.wordIt++;
 				return parseBinaryExpression(parserContext, std::move(expr));
 			} else {
@@ -349,6 +349,30 @@ std::shared_ptr<Expression> parseIdExpression(ParserContext& ctx) noexcept {
 	if (auto idIt = ctx.idsTable.find(ctx.getToken().lexeme); idIt != ctx.idsTable.end()) {
 		auto idExpr = std::make_shared<IdExpression>();
 		idExpr->name = ctx.getToken().lexeme;
+		auto const nextTag = (ctx.wordIt + 1)->tag;
+
+		if (nextTag == Tag::LBRACKET) {
+			fmt::printf("found an array subscript expr\n");
+			auto subscriptExpr = std::make_shared<ArraySubscriptExpression>();
+			subscriptExpr->idExpr = idExpr;
+
+			ctx.wordIt += 2; // go to the token after the bracket one
+			auto indexExpr = parseExpression(ctx);
+
+			if (indexExpr == nullptr) {
+				fmt::printf("Error parsing an id expr, wrong index expression: %s\n", ctx.wordIt->lexeme);
+				return nullptr;
+			}
+
+			subscriptExpr->indexExpr = indexExpr;
+
+			if (ctx.nextToken().tag != Tag::RBRACKET) {
+				fmt::printf("Error parsing an id expr: expected ]\n");
+				return nullptr;
+			}
+
+			return subscriptExpr;
+		}
 
 		return idExpr;
 	}
