@@ -65,8 +65,10 @@ int main(int argc, char* argv[]) {
 	auto translatedCode = blahpiler::translator::translate(entitiesSeq);
 
 	fmt::printf("translated code:\n %s\n", translatedCode);
+	std::string programCode = "#include <stdio.h>\n\nint main() {\n" +
+		translatedCode + "\n}";
 
-	writeTranslatedCode(targetFile, translatedCode);
+	writeTranslatedCode(targetFile, programCode);
 
 	return 0;
 }
