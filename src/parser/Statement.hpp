@@ -18,7 +18,7 @@ public:
 	~Statement() override = default;
 };
 
-class ValDefinitionStatement : public Statement {
+struct ValDefinitionStatement final : public Statement {
 public:
 	std::string name;
 	std::string type;
@@ -32,7 +32,7 @@ struct VarDefinitionStatement final : public Statement {
 	std::shared_ptr<Expression> assignExpression;
 };
 
-class IfElseStatement final : public Statement {
+struct IfElseStatement final : public Statement {
 public:
 	std::shared_ptr<Expression> conditionExpression;
 	std::vector<std::shared_ptr<Entity>> thenEntities;
@@ -41,7 +41,7 @@ public:
 	~IfElseStatement() override = default;
 };
 
-class WhileStatement final : public Statement {
+struct WhileStatement final : public Statement {
 public:
 	std::shared_ptr<Expression> conditionExpression;
 	std::vector<std::shared_ptr<Entity>> entities;

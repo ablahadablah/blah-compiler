@@ -26,8 +26,7 @@ public:
 //	~LiteralExpression() override = default;
 //};
 
-class IntLiteralExpression : public Expression {
-public:
+struct IntLiteralExpression final : public Expression {
 	int32_t value;
 
 	explicit IntLiteralExpression(int32_t newValue)
@@ -35,7 +34,7 @@ public:
 	~IntLiteralExpression() override = default;
 };
 
-struct DoubleLiteralExpression : public Expression {
+struct DoubleLiteralExpression final : public Expression {
 	double value;
 
 	explicit DoubleLiteralExpression(double newValue)
@@ -52,7 +51,7 @@ public:
 	~StringLiteralExpression() override = default;
 };
 
-class BinaryExpression : public Expression {
+struct BinaryExpression final : public Expression {
 public:
 	std::shared_ptr<Expression> lhs;
 	std::shared_ptr<Expression> rhs;
@@ -68,8 +67,7 @@ struct IdExpression final : public Expression {
 	~IdExpression() override = default;
 };
 
-class AssignmentExpression final : public Expression {
-public:
+struct AssignmentExpression final : public Expression {
 	size_t lvalueIdIndex;
 	std::string lvalueName;
 	std::shared_ptr<Expression> exprToAssign;

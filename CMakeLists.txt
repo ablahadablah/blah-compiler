@@ -14,8 +14,8 @@ target_sources(blahLib PUBLIC
 		src/parser/Entity.hpp src/parser/Statement.hpp src/Identifier.hpp src/translator/Translator.cpp
 		src/translator/Translator.hpp)
 
-add_executable(blahCompiler src/main.cpp)
+add_executable(bppCompiler src/main.cpp)
 
-target_include_directories(blahCompiler PUBLIC src)
+target_include_directories(bppCompiler PUBLIC src)
 
-target_link_libraries(blahCompiler fmt blahLib)
+target_link_libraries(bppCompiler fmt blahLib)
